@@ -54,7 +54,7 @@ std::vector<int> read_angle(std::string add, int nx, int ny);
  * @param A, B are 2 angle configuration of the same spinner lattice : 
  * @return int
  */
-int dist(std::vector<int>& A, std::vector<int>& B);
+int dist(const std::vector<int>& A, const std::vector<int>& B);
 
 /**
  * @brief change de value between 2 int
@@ -110,9 +110,9 @@ std::vector<std::vector<int>> remove_equal(std::vector<std::vector<int>>& databr
  * @param Jdouble is the intercation coupling constante with no-aligned charges
  * return true if metastable
  */
-bool metastable(std::vector<int>& A, std::vector<Spinner>& spin0, double J, double Jdouble, int nx, int ny);
+bool metastable(const std::vector<int>& A, const std::vector<Spinner>& spin0, const double J, const double Jdouble, const int nx, const int ny);
 
-bool metastable(std::vector<Spinner>& spin0, double J, double Jdouble, int nx, int ny);
+bool metastable(const std::vector<Spinner>& spin0, const double J, const double Jdouble, const int nx, const int ny);
 
 /**
  * @brief find and print metatsable state

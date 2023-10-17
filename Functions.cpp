@@ -142,16 +142,24 @@ std::vector<int> read_angle(std::string add, int nx, int ny) {
 }
 
 /* ----------- calcule la distance  entre 2 configuration------------*/
-int dist(std::vector<int>& A, std::vector<int>& B) {
+int dist(const std::vector<int>& A, const std::vector<int>& B) {
+    size_t taille = A.size();
     int d = 0;
-    for (int i = 0; i < A.size() - 1; i++)// -1 car la dernière colonne c'est la multiplicité
-    {
-        int diff = (int)abs(B[i] - A[i]) * (int)abs(B[i] - A[i]);
-        if ( diff == 4 ) { diff = 2; }
-        if (diff == 5) { diff = 1; }
+    for (size_t i = 0; i < taille - 1; i++) {
+        int diff = (B[i] - A[i]) * (B[i] - A[i]);
+        switch (diff) {
+        case 16:
+            diff = 4;
+            break;
+        case 25:
+            diff = 1;
+            break;
+        default:
+            break;
+        }
         d += diff;
     }
-    return d;
+    return sqrt(d);
 }
 
 /* ----------- change ------------*/
@@ -345,7 +353,7 @@ std::vector<std::vector<int>> remove_equal(std::vector<std::vector<int>>& databr
 }
 
 /* ----------- vérifie que un états est métastable : tous changement entraine une augementation d E ------------*/
-bool metastable(std::vector<int>& A, std::vector<Spinner>& spin0, double J, double Jdouble, int nx, int ny)
+bool metastable(const std::vector<int>& A, const  std::vector<Spinner>& spin0, const double J, const double Jdouble, const int nx, const int ny)
 {
    std::vector<Spinner> spin = spin0;
    bool stable = true;
@@ -375,19 +383,19 @@ bool metastable(std::vector<int>& A, std::vector<Spinner>& spin0, double J, doub
 }
 
 /* ----------- vérifie que un états est métastable : tous changement entraine une augementation d E ------------*/
-bool metastable( std::vector<Spinner>& spin0, double J, double Jdouble, int nx, int ny)
-{
+
+bool metastable(const std::vector<Spinner>& spin0, const double J, const double Jdouble, const int nx, const int ny) {
     std::vector<Spinner> spin = spin0;
-    bool stable = true; 
-    for (int i = 0; i < spin.size(); i++) // size de spin0 et non de A, car il y a la multiplicté dans A aussi
-    {
-        int angle = spin[i].orientation(); 
+    bool stable = true;
+    const int max_angle = 5;
+    const int min_angle = 0;
+
+    for (size_t i = 0; i < spin.size(); i++) {
+        int angle = spin[i].orientation();
         double Eref = E_total(spin, J, Jdouble, nx, ny);
 
-        int anglep = angle + 1;
-        if (anglep > 5) { anglep -= 6; }
-        int anglem = angle - 1;
-        if (anglem < 0) { anglem += 6; }
+        int anglep = (angle + 1) % 6;
+        int anglem = (angle - 1 + 6) % 6;
 
         spin[i].update_orientation(anglep);
         double Ep = E_total(spin, J, Jdouble, nx, ny);
@@ -396,12 +404,13 @@ bool metastable( std::vector<Spinner>& spin0, double J, double Jdouble, int nx, 
 
         spin[i].update_orientation(angle);
         if (Em < Eref || Ep < Eref) {
-            stable = false;  
+            stable = false;
             break;
         }
     }
     return stable;
 }
+
 
 /* ----------- vérifie que un états est métastable : tous changement entraine une augementation d E ------------*/
 void print_metastable(std::vector<std::vector<int>>& data, std::vector<Spinner>& spin0, std::string add, double J, double Jdouble, int nx, int ny, int p)
