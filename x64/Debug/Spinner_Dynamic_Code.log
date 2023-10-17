@@ -1,0 +1,19 @@
+﻿  Functions.cpp
+C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Functions.cpp(176,11): warning C4267: 'initialisation' : conversion de 'size_t' en 'int', perte possible de données
+C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Functions.cpp(209,11): warning C4267: 'initialisation' : conversion de 'size_t' en 'int', perte possible de données
+C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Functions.cpp(244,11): warning C4267: 'initialisation' : conversion de 'size_t' en 'int', perte possible de données
+C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Functions.cpp(245,11): warning C4267: 'initialisation' : conversion de 'size_t' en 'int', perte possible de données
+C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Functions.cpp(271,68): warning C4244: '+=' : conversion de '_Ty' en 'int', perte possible de données
+          with
+          [
+              _Ty=double
+          ]
+  main.cpp
+  Spinner.cpp
+C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Spinner.cpp(37,12): warning C4244: 'return' : conversion de 'double' en 'int', perte possible de données
+  Spinner_Dynamic.cpp
+C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Spinner_Dynamic.cpp(252,15): warning C4244: 'argument' : conversion de 'time_t' en 'unsigned int', perte possible de données
+C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Spinner_Dynamic.cpp(280,15): warning C4244: 'argument' : conversion de 'time_t' en 'unsigned int', perte possible de données
+C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Spinner_Dynamic.cpp(344,15): warning C4244: 'argument' : conversion de 'time_t' en 'unsigned int', perte possible de données
+  Génération de code en cours...
+  Spinner_Dynamic_Code.vcxproj -> C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\x64\Debug\Spinner_Dynamic_Code.exe
