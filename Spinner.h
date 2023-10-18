@@ -30,3 +30,12 @@ public:
 
 };
 
+
+/* struct pour passer les différent couplages */
+struct couplage {
+    float J; // --
+    float Jdouble; // -=
+    float Joppose; // - =-
+    float Jlow; // == plus proches 
+    float Jlowc; // == croisée
+};

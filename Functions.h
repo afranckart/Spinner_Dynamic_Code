@@ -9,6 +9,7 @@
 
 #include <vector>
 class Spinner;
+struct couplage;
 
 /**
  * @brief make a convential structure path for file
@@ -110,9 +111,9 @@ std::vector<std::vector<int>> remove_equal(std::vector<std::vector<int>>& databr
  * @param Jdouble is the intercation coupling constante with no-aligned charges
  * return true if metastable
  */
-bool metastable(const std::vector<int>& A, const std::vector<Spinner>& spin0, const double J, const double Jdouble, const int nx, const int ny);
+bool metastable(const std::vector<int>& A, const std::vector<Spinner>& spin0,  couplage J, int nx, int ny);
 
-bool metastable(const std::vector<Spinner>& spin0, const double J, const double Jdouble, const int nx, const int ny);
+bool metastable(const std::vector<Spinner>& spin0, couplage J, int nx, int ny);
 
 /**
  * @brief find and print metatsable state
@@ -121,7 +122,7 @@ bool metastable(const std::vector<Spinner>& spin0, const double J, const double 
  * @param Jdouble is the intercation coupling constante with no-aligned charges
  * return a file with the metastable state angle conguration
  */
-void print_metastable(std::vector<std::vector<int>>& data, std::vector<Spinner>& spin0, std::string add, double J, double Jdouble, int nx, int ny, int p);
+void print_metastable(std::vector<std::vector<int>>& data, std::vector<Spinner>& spin0, std::string add, couplage J, int nx, int ny, int p);
 
 
 /**
@@ -131,6 +132,6 @@ void print_metastable(std::vector<std::vector<int>>& data, std::vector<Spinner>&
  * @param Jdouble is the intercation coupling constante with no-aligned charges
  * return a file with the metastable state angle conguration
  */
-void print_E(std::vector<std::vector<int>>& data, std::vector<Spinner>& spin0, std::string add, double J, double Jdouble, int nx, int ny);
+void print_E(std::vector<std::vector<int>>& data, std::vector<Spinner>& spin0, std::string add, couplage J, int nx, int ny);
 
 

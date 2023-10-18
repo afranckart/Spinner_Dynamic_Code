@@ -2,8 +2,8 @@
 // Fonctions associée à la class Spinner
 //
 #include "Spinner.h"
-#include "Functions.h"
 #include "Spinner_Dynamic.h"
+#include "Functions.h"
 #include <vector>
 #include <fstream>
 #include <cmath>
@@ -353,7 +353,7 @@ std::vector<std::vector<int>> remove_equal(std::vector<std::vector<int>>& databr
 }
 
 /* ----------- vérifie que un états est métastable : tous changement entraine une augementation d E ------------*/
-bool metastable(const std::vector<int>& A, const  std::vector<Spinner>& spin0, const double J, const double Jdouble, const int nx, const int ny)
+bool metastable(const std::vector<int>& A, const  std::vector<Spinner>& spin0, couplage J, int nx, int ny)
 {
    std::vector<Spinner> spin = spin0;
    bool stable = true;
@@ -361,7 +361,7 @@ bool metastable(const std::vector<int>& A, const  std::vector<Spinner>& spin0, c
    for (int i = 0; i < spin.size(); i++) // size de spin0 et non de A, car il y a la multiplicté dans A aussi
    {
        int angle = spin[i].orientation();
-       double Eref = E_total(spin, J, Jdouble, nx, ny);
+       float Eref = E_local(spin, i, J, nx, ny);
 
        int anglep = angle + 1;
        if (anglep > 5) { anglep -= 6; }
@@ -369,9 +369,9 @@ bool metastable(const std::vector<int>& A, const  std::vector<Spinner>& spin0, c
        if (anglem < 0) { anglem += 6; }
 
        spin[i].update_orientation(anglep);
-       double Ep = E_total(spin, J, Jdouble, nx, ny);
+       float Ep = E_local(spin, i, J, nx, ny);
        spin[i].update_orientation(anglem);
-       double Em = E_total(spin, J, Jdouble, nx, ny);
+       float Em = E_local(spin, i, J, nx, ny);
 
        spin[i].update_orientation(angle);
        if (Em < Eref || Ep < Eref) {
@@ -384,7 +384,7 @@ bool metastable(const std::vector<int>& A, const  std::vector<Spinner>& spin0, c
 
 /* ----------- vérifie que un états est métastable : tous changement entraine une augementation d E ------------*/
 
-bool metastable(const std::vector<Spinner>& spin0, const double J, const double Jdouble, const int nx, const int ny) {
+bool metastable(const std::vector<Spinner>& spin0, couplage J, int nx, int ny) {
     std::vector<Spinner> spin = spin0;
     bool stable = true;
     const int max_angle = 5;
@@ -392,15 +392,15 @@ bool metastable(const std::vector<Spinner>& spin0, const double J, const double 
 
     for (size_t i = 0; i < spin.size(); i++) {
         int angle = spin[i].orientation();
-        double Eref = E_total(spin, J, Jdouble, nx, ny);
+        float Eref = E_local(spin, i, J, nx, ny);
 
         int anglep = (angle + 1) % 6;
         int anglem = (angle - 1 + 6) % 6;
 
         spin[i].update_orientation(anglep);
-        double Ep = E_total(spin, J, Jdouble, nx, ny);
+        float Ep = E_local(spin, i, J, nx, ny);
         spin[i].update_orientation(anglem);
-        double Em = E_total(spin, J, Jdouble, nx, ny);
+        float Em = E_local(spin, i, J, nx, ny);
 
         spin[i].update_orientation(angle);
         if (Em < Eref || Ep < Eref) {
@@ -413,7 +413,7 @@ bool metastable(const std::vector<Spinner>& spin0, const double J, const double 
 
 
 /* ----------- vérifie que un états est métastable : tous changement entraine une augementation d E ------------*/
-void print_metastable(std::vector<std::vector<int>>& data, std::vector<Spinner>& spin0, std::string add, double J, double Jdouble, int nx, int ny, int p)
+void print_metastable(std::vector<std::vector<int>>& data, std::vector<Spinner>& spin0, std::string add, couplage J, int nx, int ny, int p)
 {
     std::ofstream file(add + "_meta" + ".txt", std::ios::out);
 
@@ -422,7 +422,7 @@ void print_metastable(std::vector<std::vector<int>>& data, std::vector<Spinner>&
     }
     else
     {
-        std::vector<std::vector<int>> A = find_meta(spin0, data, J, Jdouble, 10 * nx * ny, nx, ny, p);
+        std::vector<std::vector<int>> A = find_meta(spin0, data, J, 10 * nx * ny, nx, ny, p);
         for (std::vector<int>& state : A)
         {
             file << state[0];
@@ -434,18 +434,18 @@ void print_metastable(std::vector<std::vector<int>>& data, std::vector<Spinner>&
 }
 
 /*---------- - donne l histogramme de l'énergie des états ------------ */
-void print_E(std::vector<std::vector<int>>&data, std::vector<Spinner>& spin0, std::string add, double J, double Jdouble, int nx, int ny)
+void print_E(std::vector<std::vector<int>>&data, std::vector<Spinner>& spin0, std::string add, couplage J, int nx, int ny)
 {
     if (data[0].size() != nx * ny + 1) { std::cout << "ERROR in print_E : data[0].size() != nx * ny + 1" << std::endl; }
     
     std::vector<int> E;
     E.reserve(data.size());
     std::vector<Spinner> spin = spin0;
-    std::map<double, int> histogramme;
+    std::map<float, int> histogramme;
     for (std::vector<int>& state : data)
     {
         for (int i = 0; i < spin.size(); i++) { spin[i].update_orientation(state[i]); }
-        histogramme[E_total(spin, J, Jdouble, nx, ny)]++;
+        histogramme[E_total(spin, J, nx, ny)]++;
     }
     std::ofstream file(add + "_E" + ".txt", std::ios::out);
 

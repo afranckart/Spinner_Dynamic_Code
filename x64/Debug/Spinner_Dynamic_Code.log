@@ -9,10 +9,15 @@ C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Func
           [
               _Ty=double
           ]
-  Spinner_Dynamic.cpp
-C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Spinner_Dynamic.cpp(252,15): warning C4244: 'argument' : conversion de 'time_t' en 'unsigned int', perte possible de données
-C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Spinner_Dynamic.cpp(280,15): warning C4244: 'argument' : conversion de 'time_t' en 'unsigned int', perte possible de données
-C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Spinner_Dynamic.cpp(344,15): warning C4244: 'argument' : conversion de 'time_t' en 'unsigned int', perte possible de données
+C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Functions.cpp(395,36): warning C4267: 'argument' : conversion de 'size_t' en 'int', perte possible de données
+C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Functions.cpp(401,34): warning C4267: 'argument' : conversion de 'size_t' en 'int', perte possible de données
+C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Functions.cpp(403,34): warning C4267: 'argument' : conversion de 'size_t' en 'int', perte possible de données
   main.cpp
+  Spinner.cpp
+C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Spinner.cpp(37,12): warning C4244: 'return' : conversion de 'double' en 'int', perte possible de données
+  Spinner_Dynamic.cpp
+C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Spinner_Dynamic.cpp(245,15): warning C4244: 'argument' : conversion de 'time_t' en 'unsigned int', perte possible de données
+C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Spinner_Dynamic.cpp(273,15): warning C4244: 'argument' : conversion de 'time_t' en 'unsigned int', perte possible de données
+C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\Spinner_Dynamic.cpp(338,15): warning C4244: 'argument' : conversion de 'time_t' en 'unsigned int', perte possible de données
   Génération de code en cours...
   Spinner_Dynamic_Code.vcxproj -> C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\x64\Debug\Spinner_Dynamic_Code.exe
