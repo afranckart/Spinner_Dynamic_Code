@@ -55,21 +55,21 @@ std::vector<int> read_angle(std::string add, int nx, int ny);
  * @param A, B are 2 angle configuration of the same spinner lattice : 
  * @return int
  */
-int dist(const std::vector<int>& A, const std::vector<int>& B);
+float dist(const std::vector<int>& A, const std::vector<int>& B);
 
 /**
  * @brief change de value between 2 int
  * @param 2 int
  * @return int
  */
-void change(int& a, int& b);
+void change(float& a, float& b);
 
 /**
  * @brief performe a distance beatween 2 line or collunm of distance matrice Dij
  * @param A, B are tow  line or collunmof distance matrice Dij
  * @return int
  */
-int distline(std::vector<int>& A, std::vector<int>& B);
+float distline(std::vector<float>& A, std::vector<float>& B);
 
 
 /**
@@ -77,9 +77,9 @@ int distline(std::vector<int>& A, std::vector<int>& B);
  * @param A is the  distance matrice Dij
  * @return void
  */
-void tri(std::vector<std::vector<int>>& A);
+void tri(std::vector<std::vector<float>>& A);
 
-void clustering(std::vector<std::vector<int>>& A);
+void clustering(std::vector<std::vector<float>>& A);
 
 /**
  * @brief performe the distance matrice Dij and the probability of have a distance d, and print this in 2 file

@@ -142,11 +142,11 @@ std::vector<int> read_angle(std::string add, int nx, int ny) {
 }
 
 /* ----------- calcule la distance  entre 2 configuration------------*/
-int dist(const std::vector<int>& A, const std::vector<int>& B) {
+float dist(const std::vector<int>& A, const std::vector<int>& B) {
     size_t taille = A.size();
-    int d = 0;
+    float d = 0;
     for (size_t i = 0; i < taille - 1; i++) {
-        int diff = (B[i] - A[i]) * (B[i] - A[i]);
+        int diff = (float)(B[i] - A[i]) * (B[i] - A[i]);
         switch (diff) {
         case 16:
             diff = 4;
@@ -163,30 +163,30 @@ int dist(const std::vector<int>& A, const std::vector<int>& B) {
 }
 
 /* ----------- change ------------*/
-void change(int& a, int& b)
+void change(float& a, float& b)
 {
-    int c = a;
+    float c = a;
     a = b;
     b = c;
 }
 
 /* ----------- distance entre les lignes de la matrice des distance Dij ------------*/
-int distline(std::vector<int>& A, std::vector<int>& B)
+float distline(std::vector<float>& A, std::vector<float>& B)
 {
-    int d = 0;;
-    for (int i = 0; i < A.size(); i++) { d += abs(A[i] - B[i]); }
+    float d = 0;;
+    for (int i = 0; i < A.size(); i++) { d += (float)abs(A[i] - B[i]); }
     return d;
 }
 
 /* ----------- trie la matrice de distance ------------*/
-void tri(std::vector<std::vector<int>>& A) 
+void tri(std::vector<std::vector<float>>& A) 
 {
     int n = A.size();
     std::vector<int> newindex(n);
     for (int i = 0; i < n - 1; i++) // parcourt les colonnes et cherche les lignes les plus proches
     {
         int k = i + 1;
-        int d = distline(A[i], A[i+1]);
+        float d = distline(A[i], A[i+1]);
         for (int j = i + 2; j < n; j++)
         {
             if (distline(A[i], A[j]) < d) 
@@ -212,7 +212,7 @@ void tri(std::vector<std::vector<int>>& A)
 
 
 /* ----------- trie la matrice de distance par clustering ------------*/
-void clustering(std::vector<std::vector<int>>& A) // méthode de clustering
+void clustering(std::vector<std::vector<float>>& A) // méthode de clustering
 {
     int n = A.size();
     std::vector<int> newindex(n);
@@ -251,13 +251,13 @@ void print_dist(std::vector<std::vector<int>>& data, std::string add, int nx, in
 
     int N = data.size();
     int n = data[0].size() - 1; 
-    std::vector<std::vector<int>> matrice(N, std::vector<int>(N));
-    int dmax = 0;
+    std::vector<std::vector<float>> matrice(N, std::vector<float>(N));
+    float dmax = 0;
     for (int i = 0; i < N ; i++)
     {
         for (int j = 0; j <= i; j++)
         {
-            int d = dist(data[i], data[j]);
+            float d = dist(data[i], data[j]);
             matrice[i][j] = d;
             matrice[j][i] = d;
             if (d > dmax) { dmax = d; } 
@@ -271,7 +271,7 @@ void print_dist(std::vector<std::vector<int>>& data, std::string add, int nx, in
         {
             if (matrice[i][j] != 0)
             {
-                prob[matrice[i][j] - 1] += data[i][n] * data[j][n]; 
+                prob[(int)matrice[i][j] - 1] += data[i][n] * data[j][n];
             }
         }
     } 

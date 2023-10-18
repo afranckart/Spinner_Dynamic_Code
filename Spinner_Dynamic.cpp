@@ -69,7 +69,7 @@ std::vector<int> neighbour(int kx, int ky, int nx, int ny) { //  on part de en h
 /* -- Renvoie l'énergie d'interaction entre 2 spinner voisin  -- */
 float interaction(Spinner& A, Spinner& voisins,  int nvoisins, couplage J) //nvoisins = 0 et s'incrémente dans le sens antihorloger
 {
-    float U = 0.;
+    float U = 0.; 
     int alpha = A.orientation();
     int theta = voisins.orientation();
 
@@ -153,7 +153,9 @@ float E_local(std::vector<Spinner>& spin,  int index, couplage J, int nx, int ny
 
     float U = 0.;
 
-    for (int i = 0; i < 6; i++) { U += interaction(spin[index], spin[voisins[i]], i, J); }
+    for (int i = 0; i < 6; i++) {
+        if (voisins[i] != -1) { U += interaction(spin[index], spin[voisins[i]], i, J); }
+    }
     
     return U;
 }
@@ -395,3 +397,4 @@ void Recuit_allmeta(std::vector<Spinner>& spin, std::vector<std::vector<int>>& d
 
     }
 }
+
