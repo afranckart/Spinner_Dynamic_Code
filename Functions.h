@@ -57,6 +57,7 @@ std::vector<int> read_angle(std::string add, int nx, int ny);
  */
 float dist(const std::vector<int>& A, const std::vector<int>& B);
 
+
 /**
  * @brief change de value between 2 int
  * @param 2 int
@@ -87,6 +88,8 @@ void clustering(std::vector<std::vector<float>>& A);
  * @return void
  */
 void print_dist(std::vector<std::vector<int>>& data, std::string add, int nx, int ny);
+
+void print_dist_E(std::vector<std::vector<int>>& data, std::string add, std::vector<Spinner>& spin, couplage J, int nx, int ny);
 
 /**
  * @brief read data print by print_data, 
@@ -134,4 +137,7 @@ void print_metastable(std::vector<std::vector<int>>& data, std::vector<Spinner>&
  */
 void print_E(std::vector<std::vector<int>>& data, std::vector<Spinner>& spin0, std::string add, couplage J, int nx, int ny);
 
+
+
+void print_angle_average(std::vector<std::vector<int>>& data, std::string add);
 

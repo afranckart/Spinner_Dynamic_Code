@@ -141,7 +141,7 @@ std::vector<int> read_angle(std::string add, int nx, int ny) {
     return angle;
 }
 
-/* ----------- calcule la distance  entre 2 configuration------------*/
+/* ----------- calcule la distance de hamming entre 2 configuration------------*/
 float dist(const std::vector<int>& A, const std::vector<int>& B) {
     size_t taille = A.size();
     float d = 0;
@@ -157,10 +157,12 @@ float dist(const std::vector<int>& A, const std::vector<int>& B) {
         default:
             break;
         }
-        d += diff;
+
+        d += diff * 0.2741556; // * (pi/6)^2
     }
     return sqrt(d);
 }
+
 
 /* ----------- change ------------*/
 void change(float& a, float& b)
@@ -252,7 +254,7 @@ void print_dist(std::vector<std::vector<int>>& data, std::string add, int nx, in
     int N = data.size();
     int n = data[0].size() - 1; 
     std::vector<std::vector<float>> matrice(N, std::vector<float>(N));
-    float dmax = 0;
+    double dmax = 0;
     for (int i = 0; i < N ; i++)
     {
         for (int j = 0; j <= i; j++)
@@ -264,18 +266,19 @@ void print_dist(std::vector<std::vector<int>>& data, std::string add, int nx, in
         }
     }
 
-    std::vector<double> prob(dmax, 0);
+    
+    std::vector<double> prob(dmax * 100, 0);
     for (int i = 0; i < N; i++) // -1 car la dernière colonne c'est la multiplicité de l'état
     {
         for (int j = 0; j < i; j++)
         {
             if (matrice[i][j] != 0)
             {
-                prob[(int)matrice[i][j] - 1] += data[i][n] * data[j][n];
+                prob[ (int)(100 * matrice[i][j]) - 1] += data[i][n] * data[j][n];
             }
         }
     } 
-    int normalisation = 0;
+    double normalisation = 0;
     for (int i = 0; i < prob.size(); i++) { normalisation += prob[i]; }
     
     tri(matrice);
@@ -309,7 +312,87 @@ void print_dist(std::vector<std::vector<int>>& data, std::string add, int nx, in
     {
         for (int i = 0; i < prob.size(); i++)
         {
-            if(prob[i] != 0){ fileProb << i + 1 << "\t" << prob[i] / normalisation << std::endl; }
+            if(prob[i] != 0){ fileProb << (double)i * 0.01 + 1 << "\t" << prob[i] / normalisation << std::endl; }
+        }
+    }
+    fileProb.close();
+}
+
+/* ----------- calcule la matrice de distance en terme d'énergie et la probabilité de trouver ces distance ------------*/
+
+void print_dist_E(std::vector<std::vector<int>>& data, std::string add, std::vector<Spinner> &spin, couplage J, int nx, int ny) {
+
+    if (data[0].size() != nx * ny + 1) { std::cout << "ERROR in print_dist : data[0].size() != nx * ny + 1" << std::endl; }
+
+    int N = data.size();
+    int n = data[0].size() - 1;
+    std::vector<std::vector<float>> matrice(N, std::vector<float>(N));
+    
+    float dmax = 0;
+    std::vector<Spinner> spin0 = spin;
+    for (int i = 0; i < N; i++)
+    {
+        for (int k = 0; k < n; k++) { spin0[k].update_orientation(data[i][k]); }
+        float Ei = E_total(spin0, J, nx, ny);
+
+        for (int j = 0; j <= i; j++)
+        {
+            for (int k = 0; k < n; k++) { spin0[k].update_orientation(data[j][k]); }
+            float Ej = E_total(spin0, J, nx, ny);
+            float d = abs(Ei-Ej);
+            matrice[i][j] = d;
+            matrice[j][i] = d;
+            if (d > dmax) { dmax = d; }
+        }
+    }
+
+
+    std::vector<double> prob(dmax * 1000, 0);
+    for (int i = 0; i < N; i++) // -1 car la dernière colonne c'est la multiplicité de l'état
+    {
+        for (int j = 0; j < i; j++)
+        {
+            if (matrice[i][j] != 0)
+            {
+                prob[(int)(1000 * matrice[i][j]) - 1] += data[i][n] * data[j][n];
+            }
+        }
+    }
+    double normalisation = 0;
+    for (int i = 0; i < prob.size(); i++) { normalisation += prob[i]; }
+
+    tri(matrice);
+
+    std::ofstream fileDist(add + "_MD" + ".txt", std::ios::out);
+
+    if (!fileDist.is_open()) {
+        std::cout << "Erreur print_dist : Impossible d'ouvrir le fichier." << add + ".txt" << std::endl;
+    }
+    else
+    {
+        for (int i = 0; i < N; i++)
+        {
+
+            fileDist << matrice[i][0];
+            for (int j = 1; j < N; j++)
+            {
+                fileDist << "\t" << matrice[i][j];
+            }
+            if (i != N - 1) { fileDist << std::endl; }
+        }
+    }
+    fileDist.close();
+
+    std::ofstream fileProb(add + "_PD" + ".txt", std::ios::out);
+
+    if (!fileProb.is_open()) {
+        std::cout << "Erreur print_dist : Impossible d'ouvrir le fichier." << add + ".txt" << std::endl;
+    }
+    else
+    {
+        for (int i = 0; i < prob.size(); i++)
+        {
+            if (prob[i] != 0) { fileProb << (double)i * 0.01 + 1 << "\t" << prob[i] / normalisation << std::endl; }
         }
     }
     fileProb.close();
@@ -422,7 +505,7 @@ void print_metastable(std::vector<std::vector<int>>& data, std::vector<Spinner>&
     }
     else
     {
-        std::vector<std::vector<int>> A = find_meta(spin0, data, J, 10 * nx * ny, nx, ny, p);
+        std::vector<std::vector<int>> A = find_meta(spin0, data, J, 3 * nx * ny, nx, ny, p);
         for (std::vector<int>& state : A)
         {
             file << state[0];
@@ -455,9 +538,38 @@ void print_E(std::vector<std::vector<int>>&data, std::vector<Spinner>& spin0, st
     else
     {
         for (const auto& pair : histogramme) {
-            file << pair.second << "\t" << pair.first << "\n";
+            file << pair.first << "\t" << pair.second << "\n";
         }
     }
     file.close();
 }
 
+
+/*---------- - spin overlap fct local ------------ */
+
+void print_angle_average(std::vector<std::vector<int>>& data, std::string add) {
+
+    std::ofstream file(add + "_AA" + ".txt", std::ios::out);
+
+    if (!file.is_open()) {
+        std::cout << "print_angle_average : Impossible d'ouvrir le fichier." << add + ".txt" << std::endl;
+    }
+    else
+    {
+        float average = 0;
+        for (int j = 0; j < data.size(); j++) {
+            average += (float)data[j][0];
+        }
+        file << average / (float)data.size();
+
+        for (int i = 1; i < data[0].size() - 1; i++) {
+
+            average = 0;
+            for (int j = 0; j < data.size(); j++) {
+                average += (float)data[j][i];
+            }
+            file << "\t" << average / (float)data.size();
+        }
+    }
+    file.close();
+}

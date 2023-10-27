@@ -8,12 +8,14 @@
 #include <string>
 #include <fstream>
 
+
+
 int main() {
 
     clock_t debut = clock();
 
-    int graine = 200;
-    int n = 10;
+    int graine = 500;
+    int n = 2;
 
     double lam = 0.90;
     double T0 = 2;
@@ -31,38 +33,7 @@ int main() {
 
     int p = 15;
 
-    std::string path = "C:\\Users\\axelf\\OneDrive - Universite de Liege\\Mémoire\\simulation\\from_meta_1\\";
-
-    std::vector<Spinner> spin = configuration_rand(n, n, graine); 
-
-    std::vector<int> U= read_angle(path + "G200_10x10_meta_1", n, n);
-    for (int j = 0; j < n * n; j++) { spin[j].update_orientation(U[j]); }
-
-    
-    //std::vector<std::vector<int>> A = Metropolis(spin, 0.9, 10, 0.1, J, 1000, 10, n, n, p);
-
-    //A = find_meta(spin, A, J, 1000, n, n, p);
-
-    //print_data(A, path + "G200_10x10_meta_1_T010_meta", n, n);
-    
-    //print_dist(A, path + "G200_10x10_meta_1_T010_meta", n, n);
-
-    //print_E(A, spin, path + "G200_10x10_meta_1_t010_meta", J, n, n);
-    
-    //std::vector<std::vector<int>> A = read_data( path + "G200_10x10_meta_1_T010_meta", n, n);
-
-    //Recuit_allmeta(spin, A, path + "G200_10x10_meta_1_T010_meta", 0.9, 1, 0.01, J, 1000, 100, 1, n, n, p);
-    
-    std::vector<std::vector<int>> A = read_data(path + "G200_10x10_meta_1_T010_meta_meta_RC1_T01.000000", n, n);
-    for (int i = 0; i < A.size(); i++)
-    {
-        std::vector<Spinner> spin = configuration_rand(n, n, graine);
-        for (int j = 0; j < n * n; j++) { spin[j].update_orientation(A[i][j]); }
-        std::cout << i << "\t" << E_total(spin, J, n, n) << std::endl;
-    }
-
-
-    
+    std::string path = "C:\\Users\\axelf\\OneDrive - Universite de Liege\\Mémoire\\simulation\\++-\\";
 
 
     /*for (int i = 0; i < 6; i++)

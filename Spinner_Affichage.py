@@ -4,13 +4,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def print_matrice (n, direc, add):
+def print_matrice (n, direc, add, addspin):
     angles = np.loadtxt(direc + add + '.txt')
-    matrice = np.loadtxt( direc + 'G200_10x10' + '.txt')
+    matrice = np.loadtxt( direc + addspin + '.txt')
 
     a = 1  # paramètre de maille
     L = 1 * (n + 1)  # taille du graph
-    largeur = 0.4
+    largeur = 0.4 
     hauteur = largeur / 5
     
     for s in range(angles.shape[0]):
@@ -60,7 +60,7 @@ def print_matrice (n, direc, add):
         plt.gca().set_axis_off()
 
         # Sauvegarder la figure au format PDF
-        plt.savefig(direc + add + '_' + str(s) + '.pdf', format='pdf', bbox_inches='tight', dpi=300)
+        plt.savefig(direc + add + '_' + str(s) + '.jpg', format='jpg', bbox_inches='tight', dpi=1000)
 
         # plt.show()
         plt.close()
@@ -69,7 +69,7 @@ def print_matrice (n, direc, add):
 def print_spinner( n, direc, add):
 
     matrice = np.loadtxt(direc + add + '.txt')
-    print(matrice)
+  
     a = 1  # paramètre de maille
     L = 1 * (n + 1)  # taille du graph
     largeur = 0.4
@@ -120,15 +120,13 @@ def print_spinner( n, direc, add):
     plt.gca().set_axis_off()
 
     # Sauvegarder la figure au format PDF
-    plt.savefig(direc + add  + '.pdf', format='pdf', bbox_inches='tight', dpi=300)
+    plt.savefig(direc + add  + '.jpg', format='jpg', bbox_inches='tight', dpi=300)
 
     # plt.show()
     plt.close()
 
 
-direc = 'C:\\Users\\axelf\\OneDrive - Universite de Liege\\Mémoire\\simulation\\from_meta_1\\'
-add = 'G200_10x10_meta_1_T010_meta_meta_RC1_T01.000000'
+direc = 'C:\\Users\\axelf\\OneDrive - Universite de Liege\\Mémoire\\simulation\\++-\\'
+add = 'G500_50x50_ppm_meta'
 
-n = 10
-
-print_matrice(10, direc, add)
+n = 50

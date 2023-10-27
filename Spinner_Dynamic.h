@@ -43,6 +43,8 @@ float E_total(std::vector<Spinner>& spin, couplage J , int nx,  int ny);
  */
 std::vector<Spinner> configuration_rand(int nx, int ny, unsigned int graine);
 
+std::vector<Spinner> configuration(int nx, int ny, unsigned int graine, int Q1, int Q2, int Q3);
+
 /**
  * @brief thermalize a lattice of spinner at a fixed T
  * @param spin is the vector with all the spinner of lattice

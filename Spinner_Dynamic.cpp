@@ -140,7 +140,7 @@ float interaction(Spinner& A, Spinner& voisins,  int nvoisins, couplage J) //nvo
         }
     }
     
-    return U;
+    return -U;
 }
 
 /* -- Renvoie l'énergie d'interaction entre 1 spinner et ses 6 voisin  -- */
@@ -197,6 +197,28 @@ std::vector<Spinner> configuration_rand(int nx, int ny, unsigned int graine) { /
 
         int angle = rand() % 6;   // initialise le spinneur dans une orientation aléatoire : angle = angle*pi/3
         
+        spin.emplace_back(i, site, angle);  // initialise le spinneur
+    }
+
+    return spin;
+}
+
+/*----Initialise une configuration de spinner de charge donner ------*/
+std::vector<Spinner> configuration(int nx, int ny, unsigned int graine, int Q1, int Q2, int Q3) { // graine dans srand(time(NULL))
+
+    srand(graine); // Initialistation
+
+    int N = nx * ny;
+    std::vector<Spinner> spin;
+
+    spin.reserve(N); // réserve de la place
+
+    std::vector<int> site = { Q1, Q2, Q3 };
+
+    for (int i = 0; i < N; i++)
+    {
+        int angle = rand() % 6;   // initialise le spinneur dans une orientation aléatoire : angle = angle*pi/3
+
         spin.emplace_back(i, site, angle);  // initialise le spinneur
     }
 
