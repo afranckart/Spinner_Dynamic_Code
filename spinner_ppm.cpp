@@ -8,7 +8,7 @@
 
 /********************************************************************************/
 /*                                                                              */
-/*                            comput Energy dipôle fct                          */
+/*                            comput Energy dipï¿½le fct                          */
 /*                                                                              */
 /********************************************************************************/
 
@@ -61,7 +61,7 @@ double*  H_init(double L) {
 	double* H = (double*)malloc(SIZE_H * sizeof(double));
 
 	if (H == NULL) {
-		fprintf(stderr, "H_init : Allocation de mémoire échouée.\n");
+		fprintf(stderr, "H_init : Allocation de mï¿½moire ï¿½chouï¿½e.\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -78,7 +78,7 @@ double* H_B_init( double bx, double by) {
 	double* HB = (double*)malloc(6 * sizeof(double));
 
 	if (HB == NULL) {
-		fprintf(stderr, "H_init : Allocation de mémoire échouée.\n");
+		fprintf(stderr, "H_init : Allocation de mï¿½moire ï¿½chouï¿½e.\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -123,7 +123,7 @@ void spinners_init(spinners_t *spin, double L, int nx, int ny){
 	spin->angles = (int*)malloc(nx * ny * sizeof(int));
 
 	if (spin->angles == NULL) {
-		fprintf(stderr, "spinner_init : Allocation de mémoire échouée.\n");
+		fprintf(stderr, "spinner_init : Allocation de mï¿½moire ï¿½chouï¿½e.\n");
 		exit(EXIT_FAILURE);
 	}
 }
@@ -134,7 +134,7 @@ void Finalisation_simu(spinners_t* spin, double *H, double* HB) {
 	free(HB);
 }
 
-int* neighbour( spinners_t* spin, int index) { //  on part de en haut à gauche et on commence à kx=ky=0
+int* neighbour( spinners_t* spin, int index) { //  on part de en haut ï¿½ gauche et on commence ï¿½ kx=ky=0
 
     int ky = (index - index % spin->nx) / spin->nx;
 	int kx = index - ky * spin->nx; //printf("kx %d ky %d index %d\n", kx, ky, index);
@@ -142,7 +142,7 @@ int* neighbour( spinners_t* spin, int index) { //  on part de en haut à gauche e
 	int* voisins = (int*)malloc(SIZE_NEIGHBOUR* sizeof(int));
 
 	if (voisins == NULL) {
-		fprintf(stderr, "neighbour : Allocation de mémoire échouée.\n");
+		fprintf(stderr, "neighbour : Allocation de mï¿½moire ï¿½chouï¿½e.\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -154,7 +154,7 @@ int* neighbour( spinners_t* spin, int index) { //  on part de en haut à gauche e
 
     if (ky != 0)     //peut avoir des voisins au dessus
     {
-        if (ky % 2 == 1)     //peut avoir un voisin au dessu à gauche
+        if (ky % 2 == 1)     //peut avoir un voisin au dessu ï¿½ gauche
         {
             voisins[2] = (ky - 1) * spin->nx + kx;
         }
@@ -165,7 +165,7 @@ int* neighbour( spinners_t* spin, int index) { //  on part de en haut à gauche e
 			voisins[2] = -1;
 		}
 
-        if (ky % 2 == 0)     //peut avoir un voisin au dessu à droite
+        if (ky % 2 == 0)     //peut avoir un voisin au dessu ï¿½ droite
         {
             voisins[1] = (ky - 1) * spin->nx + kx;
         }
@@ -186,7 +186,7 @@ int* neighbour( spinners_t* spin, int index) { //  on part de en haut à gauche e
 
     if (ky != spin->ny - 1)     //peut avoir des voisins en dessous
     {
-        if (ky % 2 == 1)     //peut avoir un voisin en dessous à gauche
+        if (ky % 2 == 1)     //peut avoir un voisin en dessous ï¿½ gauche
         {
 			voisins[4] = (ky + 1) * spin->nx + kx; 
         }
@@ -195,7 +195,7 @@ int* neighbour( spinners_t* spin, int index) { //  on part de en haut à gauche e
 		}
 		else { voisins[4] = -1; }
 
-        if (ky % 2 == 0)     //peut avoir un voisin en dessous à droite
+        if (ky % 2 == 0)     //peut avoir un voisin en dessous ï¿½ droite
         {
             voisins[5] = (ky + 1) * spin->nx + kx;
         }
@@ -203,7 +203,7 @@ int* neighbour( spinners_t* spin, int index) { //  on part de en haut à gauche e
             voisins[5] = (ky + 1) * spin->nx + kx + 1;
 		}
 		else { voisins[5] = -1; }
-	} else {// droite, au dessus à droite, au dessus à gauche, gauche, en dessous à gauche, en dessous à droite
+	} else {// droite, au dessus ï¿½ droite, au dessus ï¿½ gauche, gauche, en dessous ï¿½ gauche, en dessous ï¿½ droite
 		voisins[4] = -1;
 		voisins[5] = -1;
 	}
@@ -268,8 +268,8 @@ FILE* openfile_out(char* add) {
 
 	 FILE* fichier;
 
-    if (fopen_s(&fichier, add, "w") != 0) {
-        fprintf(stderr, "openfile_out : Impossible d'ouvrir le fichier %s pour l'écriture.\n", add);
+    if (fopen(&fichier, add, "w") != 0) {
+        fprintf(stderr, "openfile_out : Impossible d'ouvrir le fichier %s pour l'ï¿½criture.\n", add);
         exit(EXIT_FAILURE);
     }
 	return fichier;
@@ -279,8 +279,8 @@ FILE* openfile_in(char* add) {
 
 	FILE* fichier;
 
-	if (fopen_s(&fichier, add, "r") != 0) {
-		fprintf(stderr, "openfile_in : Impossible d'ouvrir le fichier %s pour l'écriture.\n", add);
+	if (fopen(&fichier, add, "r") != 0) {
+		fprintf(stderr, "openfile_in : Impossible d'ouvrir le fichier %s pour l'ï¿½criture.\n", add);
 		exit(EXIT_FAILURE);
 	}
 	return fichier;
@@ -302,7 +302,7 @@ void read_spinners(spinners_t* spin, char* add) {
 
 	FILE* fichier = openfile_in(add);
 	int N = spin->nx * spin->ny;
-	for (int i = 0; i < N; i++) {fscanf_s(fichier, "%d", &spin->angles[i]); }
+	for (int i = 0; i < N; i++) {fscanf(fichier, "%d", &spin->angles[i]); }
 	fclose(fichier);
 }
 
@@ -341,10 +341,10 @@ unsigned long factorielle(int n, int nmin) {
 void print_allmeta(spinners_t* spin, double L, char* add) {
 	
 	char path[STRING_MAX];
-	strcpy_s(path, add);
-	strcat_s(path, "_L"); 
+	strcpy(path, add);
+	strcat(path, "_L"); 
 	snprintf(path + strlen(path), sizeof(path) - strlen(path), "%f", L); 
-	strcat_s(path, "_allmeta.txt"); 
+	strcat(path, "_allmeta.txt"); 
 
 	FILE* fichier = openfile_out(path);
 
@@ -355,19 +355,19 @@ void print_allmeta(spinners_t* spin, double L, char* add) {
 	double* HB = H_B_init(0, 0);
 	while (true) {
 
-		// Incrémenter la combinaison
+		// Incrï¿½menter la combinaison
 		int j = N - 1;
 		while (j >= 0 && spin->angles[j] == 5) {
 			spin->angles[j] = 0;
 			j--;
 		}
 
-		// Si tous les chiffres sont 5, nous avons terminé.
+		// Si tous les chiffres sont 5, nous avons terminï¿½.
 		if (j < 0) {
 			break;
 		}
 
-		// Incrémenter le dernier chiffre non 5
+		// Incrï¿½menter le dernier chiffre non 5
 		spin->angles[j]++;
 
 		if (metastable(spin, H, HB)) { print_spinners(spin, fichier); }
@@ -380,14 +380,14 @@ void print_allmeta(spinners_t* spin, double L, char* add) {
 void print_allmeta_B(spinners_t* spin, double L, char* add, double bx, double by) {
 
 	char path[STRING_MAX];
-	strcpy_s(path, add);
-	strcat_s(path, "_L");
+	strcpy(path, add);
+	strcat(path, "_L");
 	snprintf(path + strlen(path), sizeof(path) - strlen(path), "%f", L);
-	strcat_s(path, "_BX");
+	strcat(path, "_BX");
 	snprintf(path + strlen(path), sizeof(path) - strlen(path), "%f", bx);
-	strcat_s(path, "_BY");
+	strcat(path, "_BY");
 	snprintf(path + strlen(path), sizeof(path) - strlen(path), "%f", by);
-	strcat_s(path, "_allmeta.txt");
+	strcat(path, "_allmeta.txt");
 
 	FILE* fichier = openfile_out(path);
 
@@ -398,19 +398,19 @@ void print_allmeta_B(spinners_t* spin, double L, char* add, double bx, double by
 	double* HB = H_B_init(bx, by);
 	while (true) {
 
-		// Incrémenter la combinaison
+		// Incrï¿½menter la combinaison
 		int j = N - 1;
 		while (j >= 0 && spin->angles[j] == 5) {
 			spin->angles[j] = 0;
 			j--;
 		}
 
-		// Si tous les chiffres sont 5, nous avons terminé.
+		// Si tous les chiffres sont 5, nous avons terminï¿½.
 		if (j < 0) {
 			break;
 		}
 
-		// Incrémenter le dernier chiffre non 5
+		// Incrï¿½menter le dernier chiffre non 5
 		spin->angles[j]++; 
 		
 		if (metastable(spin, H, HB)) { print_spinners(spin, fichier); }
@@ -433,19 +433,19 @@ void print_allmetaofL(spinners_t* spin, char* add, double L0, double LF, double 
 		int Nstable = 0;
 		while (true) {
 
-			// Incrémenter la combinaison
+			// Incrï¿½menter la combinaison
 			int j = N - 1;
 			while (j >= 0 && spin->angles[j] == 5) {
 				spin->angles[j] = 0;
 				j--;
 			}
 
-			// Si tous les chiffres sont 5, nous avons terminé.
+			// Si tous les chiffres sont 5, nous avons terminï¿½.
 			if (j < 0) {
 				break;
 			}
 
-			// Incrémenter le dernier chiffre non 5
+			// Incrï¿½menter le dernier chiffre non 5
 			spin->angles[j]++;
 
 			if (metastable(spin, H, HB)) { Nstable++; }
@@ -471,19 +471,19 @@ void print_allmetaofBX(spinners_t* spin, double L, char* add, double B0, double 
 		int Nstable = 0;
 		while (true) {
 
-			// Incrémenter la combinaison
+			// Incrï¿½menter la combinaison
 			int j = N - 1;
 			while (j >= 0 && spin->angles[j] == 5) {
 				spin->angles[j] = 0;
 				j--;
 			}
 
-			// Si tous les chiffres sont 5, nous avons terminé.
+			// Si tous les chiffres sont 5, nous avons terminï¿½.
 			if (j < 0) {
 				break;
 			}
 
-			// Incrémenter le dernier chiffre non 5
+			// Incrï¿½menter le dernier chiffre non 5
 			spin->angles[j]++;
 
 			if (metastable(spin, H, HB)) { Nstable++; }
@@ -529,14 +529,14 @@ void print_Emin( spinners_t* spin,  char* add, int Niters)
 void print_neighbours_state_rand(spinners_t* spin, char* add, int Niters, int distance)
 {
 	char path[STRING_MAX];
-	strcpy_s(path, add);
-	strcat_s(path, "_L");
+	strcpy(path, add);
+	strcat(path, "_L");
 	snprintf(path + strlen(path), sizeof(path) - strlen(path), "%f", spin->L);
-	strcat_s(path, "_distance");
+	strcat(path, "_distance");
 	snprintf(path + strlen(path), sizeof(path) - strlen(path), "%d", distance);
-	strcat_s(path, "_iter");
+	strcat(path, "_iter");
 	snprintf(path + strlen(path), sizeof(path) - strlen(path), "%d", Niters);
-	strcat_s(path, ".txt");
+	strcat(path, ".txt");
 
 	FILE* fichier = openfile_out(path);
 	double* H = H_init(spin->L);
@@ -579,7 +579,7 @@ void print_neighbours_state_rand(spinners_t* spin, char* add, int Niters, int di
 }
 
 
-/*modifier car des états sont compter plusieur fois*/
+/*modifier car des ï¿½tats sont compter plusieur fois*/
 void print_neighbours_state_all_for(spinners_t* spin, int distancemax, int distance, int* index, int* track, FILE* fichier)
 {
 	double* H = H_init(spin->L);
@@ -627,12 +627,12 @@ void print_neighbours_state_all_for(spinners_t* spin, int distancemax, int dista
 void print_neighbours_state_all(spinners_t* spin, char* add, int distance)
 {
 	char path[STRING_MAX];
-	strcpy_s(path, add);
-	strcat_s(path, "_L");
+	strcpy(path, add);
+	strcat(path, "_L");
 	snprintf(path + strlen(path), sizeof(path) - strlen(path), "%f", spin->L);
-	strcat_s(path, "_distance");
+	strcat(path, "_distance");
 	snprintf(path + strlen(path), sizeof(path) - strlen(path), "%d", distance);
-	strcat_s(path, "_all.txt");
+	strcat(path, "_all.txt");
 	int* index = (int*)malloc(distance * sizeof(int));
 	index[0] = -1;
 	FILE* fichier = openfile_out(path);
