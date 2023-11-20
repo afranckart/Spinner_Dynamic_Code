@@ -48,7 +48,7 @@ double Uspinner(int theta, int thetav, double L, int nv) {
 			double Udd = Udipole(cos(ang), sin(ang), cos(angv), sin(angv),
 				R * cos(ang), R * sin(ang), L * cos(PI3 * nv) + R * cos(angv), L * sin(PI3 * nv) + R * sin(angv));
 
-			if (j == 4 && i != 4 || j != 4 && i == 4) { Udd *= -1.; }
+			if ((j == 4 && i != 4) || (j != 4 && i == 4)) { Udd *= -1.; }
 			U += Udd; 
 		}
 	}
@@ -266,9 +266,9 @@ bool metastable(spinners_t* spin, double* H, double* HB) {
 
 FILE* openfile_out(char* add) {
 
-	 FILE* fichier;
+	 FILE* fichier = fopen(add, "w");
 
-    if (fopen(&fichier, add, "w") != 0) {
+    if (fichier != NULL) {
         fprintf(stderr, "openfile_out : Impossible d'ouvrir le fichier %s pour l'�criture.\n", add);
         exit(EXIT_FAILURE);
     }
@@ -277,9 +277,9 @@ FILE* openfile_out(char* add) {
 
 FILE* openfile_in(char* add) {
 
-	FILE* fichier;
+	FILE* fichier = fopen( add, "r");
 
-	if (fopen(&fichier, add, "r") != 0) {
+	if (fichier != NULL) {
 		fprintf(stderr, "openfile_in : Impossible d'ouvrir le fichier %s pour l'�criture.\n", add);
 		exit(EXIT_FAILURE);
 	}
@@ -639,7 +639,7 @@ void print_neighbours_state_all(spinners_t* spin, char* add, int distance)
 	int N = spin->nx * spin->ny;
 	int track = 0;
 	print_neighbours_state_all_for(spin, distance, distance, index, &track, fichier);
-	printf("distance %d , nombre d'etats trouver = %d sur %d\n", distance, track, factorielle(N, N - distance));
+	printf("distance %d , nombre d'etats trouver = %d sur %lu\n", distance, track, factorielle(N, N - distance));
 	free(index);
 	fclose(fichier);
 }

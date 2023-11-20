@@ -1,0 +1,1 @@
+#include "spinner_CUDA.cuh"

@@ -1,13 +1,10 @@
 #include <iostream>
 #include <omp.h>
-//#include "Spinner.h"
-//#include "Functions.h"
-//#include "Spinner_Dynamic.h"
 #include "spinner_ppm.h"
 #include <ctime>
 #include <cmath>
 #include <string>
-//#include <fstream>
+#include "spinner_CUDA.cuh"
 
 
 int main() {
@@ -17,8 +14,8 @@ int main() {
     double L = 0.025;
     int nx = 5;
     int ny = 5;
-    char add[] = "C:\\Users\\axelf\\OneDrive - Universite de Liege\\Mémoire\\simulation\\ppm_5x5";
-    char addspin[] = "C:\\Users\\axelf\\OneDrive - Universite de Liege\\Mémoire\\simulation\\ppm_5x5_L0.025_Elow.txt";
+    char add[] = "C:\\Users\\axelf\\OneDrive - Universite de Liege\\Mï¿½moire\\simulation\\ppm_5x5";
+    char addspin[] = "C:\\Users\\axelf\\OneDrive - Universite de Liege\\Mï¿½moire\\simulation\\ppm_5x5_L0.025_Elow.txt";
 
     spinners_t spin;
     spinners_init(&spin, L, nx, ny);
