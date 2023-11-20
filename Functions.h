@@ -87,9 +87,9 @@ void clustering(std::vector<std::vector<float>>& A);
  * @param add is the diretory path
  * @return void
  */
-void print_dist(std::vector<std::vector<int>>& data, std::string add, int nx, int ny);
+void print_dist(std::vector<std::vector<int>>& data, std::string add, int nx, int ny, int p);
 
-void print_dist_E(std::vector<std::vector<int>>& data, std::string add, std::vector<Spinner>& spin, couplage J, int nx, int ny);
+void print_dist_E(std::vector<std::vector<int>>& data, std::string add, std::vector<Spinner>& spin, couplage J, int nx, int ny, int p);
 
 /**
  * @brief read data print by print_data, 
@@ -118,6 +118,8 @@ bool metastable(const std::vector<int>& A, const std::vector<Spinner>& spin0,  c
 
 bool metastable(const std::vector<Spinner>& spin0, couplage J, int nx, int ny);
 
+bool metastable_heart(const std::vector<Spinner>& spin0, couplage J, int nx, int ny);
+
 /**
  * @brief find and print metatsable state
  * @param databrut is the ouput of metropolis fct and this matrice with line as state and column as angle
@@ -127,6 +129,7 @@ bool metastable(const std::vector<Spinner>& spin0, couplage J, int nx, int ny);
  */
 void print_metastable(std::vector<std::vector<int>>& data, std::vector<Spinner>& spin0, std::string add, couplage J, int nx, int ny, int p);
 
+void  print_allmeta(std::vector<Spinner>& spin0, std::string add, couplage J, int nx, int ny);
 
 /**
  * @brief print the state that any modification of a angle of a lattice of sponner, cost energy

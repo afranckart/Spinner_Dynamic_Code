@@ -67,80 +67,130 @@ std::vector<int> neighbour(int kx, int ky, int nx, int ny) { //  on part de en h
 
 
 /* -- Renvoie l'énergie d'interaction entre 2 spinner voisin  -- */
-float interaction(Spinner& A, Spinner& voisins,  int nvoisins, couplage J) //nvoisins = 0 et s'incrémente dans le sens antihorloger
-{
-    float U = 0.; 
-    int alpha = A.orientation();
-    int theta = voisins.orientation();
+//float interaction(Spinner& A, Spinner& voisins,  int nvoisins, couplage J) //nvoisins = 0 et s'incrémente dans le sens antihorloger
+//{
+//    float U = 0.; 
+//    int alpha = A.orientation();
+//    int theta = voisins.orientation();
+//
+//    int l = nvoisins * 2 ;
+//
+//    if (nvoisins % 2 == 0)
+//    {
+//        if (alpha % 2 == 0)
+//        {
+//            if (theta % 2 == 1) //  - -
+//            {
+//                U = J.J * A.charge()[(alpha + l) % 3] * voisins.charge()[(theta + l) % 3];
+//            }
+//            else // - =
+//            {
+//                U = J.Jdouble * A.charge()[(alpha + l) % 3]
+//                    * (voisins.charge()[(theta + 1 + l) % 3] + voisins.charge()[(theta + 2 + l) % 3])
+//                    + J.Joppose * A.charge()[(alpha + l) % 3] * voisins.charge()[(theta + l) % 3];
+//            }
+//        }
+//        else
+//        {
+//            if (theta % 2 == 1) //  = -
+//            {
+//                U = J.Jdouble * voisins.charge()[(theta + l ) % 3]
+//                    * (A.charge()[(alpha + 1 + l) % 3] + A.charge()[(alpha + 2 + l) % 3])
+//                    + J.Joppose * voisins.charge()[(theta + l) % 3] * A.charge()[(alpha + l) % 3];
+//            }
+//            else // = =
+//            {
+//                U = J.Jlow * (A.charge()[(alpha + 2 + l) % 3] * voisins.charge()[(theta + 1 + l) % 3]
+//                    + A.charge()[(alpha + 1 + l) % 3] * voisins.charge()[(theta + 2 + l) % 3]) + 
+//                     J.Jlowc * (A.charge()[(alpha + 2 + l) % 3] * voisins.charge()[(theta + 2 + l) % 3]
+//                    + A.charge()[(alpha + 1 + l) % 3] * voisins.charge()[(theta + 1 + l) % 3]);
+//            }
+//        }
+//    }
+//    else
+//    {
+//        if (alpha % 2 == 0)
+//        {
+//            if (theta % 2 == 1) //  = =
+//            {
+//                U = J.Jlow * (A.charge()[(alpha + 2 + l) % 3] * voisins.charge()[(theta + 1 + l) % 3]
+//                    + A.charge()[(alpha + 1 + l) % 3] * voisins.charge()[(theta + 2 + l) % 3]) +
+//                    J.Jlowc * (A.charge()[(alpha + 2 + l) % 3] * voisins.charge()[(theta + 2 + l) % 3]
+//                        + A.charge()[(alpha + 1 + l) % 3] * voisins.charge()[(theta + 1 + l) % 3]);
+//            }
+//            else // = -
+//            {
+//                U = J.Jdouble * voisins.charge()[(theta + l) % 3]
+//                    * (A.charge()[(alpha + 1 + l) % 3] + A.charge()[(alpha + 2 + l) % 3]) 
+//                    + J.Joppose * A.charge()[(alpha  + l) % 3] * voisins.charge()[(theta + l) % 3];
+//            }
+//        }
+//        else
+//        {
+//            if (theta % 2 == 1) //  - =
+//            {
+//                U = J.Jdouble * A.charge()[(alpha + l) % 3]
+//                    * (voisins.charge()[(theta + 1 + l) % 3] + voisins.charge()[(theta + 2 + l) % 3]) 
+//                    + J.Joppose * voisins.charge()[(theta  + l) % 3] * A.charge()[(alpha + l) % 3];
+//            }
+//            else // - -
+//            {
+//                U = J.J * A.charge()[(alpha + l) % 3] * voisins.charge()[(theta + l) % 3];
+//            }
+//        }
+//    }
+//    
+//    return -U;
+//}
 
-    int l = nvoisins * 2 ;
+/* -- Renvoie l'énergie d'interaction entre 2 spinner voisin  -- */
+float interaction(Spinner& A, Spinner& voisins, int nvoisins, couplage J) {  //nvoisins = 0 et s'incrémente dans le sens antihorloger
 
-    if (nvoisins % 2 == 0)
-    {
-        if (alpha % 2 == 0)
-        {
-            if (theta % 2 == 1) //  - -
-            {
-                U = J.J * A.charge()[(alpha + l) % 3] * voisins.charge()[(theta + l) % 3];
-            }
-            else // - =
-            {
-                U = J.Jdouble * A.charge()[(alpha + l) % 3]
-                    * (voisins.charge()[(theta + 1 + l) % 3] + voisins.charge()[(theta + 2 + l) % 3])
-                    + J.Joppose * A.charge()[(alpha + l) % 3] * voisins.charge()[(theta + l) % 3];
-            }
-        }
-        else
-        {
-            if (theta % 2 == 1) //  = -
-            {
-                U = J.Jdouble * voisins.charge()[(theta + l ) % 3]
-                    * (A.charge()[(alpha + 1 + l) % 3] + A.charge()[(alpha + 2 + l) % 3])
-                    + J.Joppose * voisins.charge()[(theta + l) % 3] * A.charge()[(alpha + l) % 3];
-            }
-            else // = =
-            {
-                U = J.Jlow * (A.charge()[(alpha + 2 + l) % 3] * voisins.charge()[(theta + 1 + l) % 3]
-                    + A.charge()[(alpha + 1 + l) % 3] * voisins.charge()[(theta + 2 + l) % 3]) + 
-                     J.Jlowc * (A.charge()[(alpha + 2 + l) % 3] * voisins.charge()[(theta + 2 + l) % 3]
-                    + A.charge()[(alpha + 1 + l) % 3] * voisins.charge()[(theta + 1 + l) % 3]);
-            }
-        }
-    }
-    else
-    {
-        if (alpha % 2 == 0)
-        {
-            if (theta % 2 == 1) //  = =
-            {
-                U = J.Jlow * (A.charge()[(alpha + 2 + l) % 3] * voisins.charge()[(theta + 1 + l) % 3]
-                    + A.charge()[(alpha + 1 + l) % 3] * voisins.charge()[(theta + 2 + l) % 3]) +
-                    J.Jlowc * (A.charge()[(alpha + 2 + l) % 3] * voisins.charge()[(theta + 2 + l) % 3]
-                        + A.charge()[(alpha + 1 + l) % 3] * voisins.charge()[(theta + 1 + l) % 3]);
-            }
-            else // = -
-            {
-                U = J.Jdouble * voisins.charge()[(theta + l) % 3]
-                    * (A.charge()[(alpha + 1 + l) % 3] + A.charge()[(alpha + 2 + l) % 3]) 
-                    + J.Joppose * A.charge()[(alpha  + l) % 3] * voisins.charge()[(theta + l) % 3];
-            }
-        }
-        else
-        {
-            if (theta % 2 == 1) //  - =
-            {
-                U = J.Jdouble * A.charge()[(alpha + l) % 3]
-                    * (voisins.charge()[(theta + 1 + l) % 3] + voisins.charge()[(theta + 2 + l) % 3]) 
-                    + J.Joppose * voisins.charge()[(theta  + l) % 3] * A.charge()[(alpha + l) % 3];
-            }
-            else // - -
-            {
-                U = J.J * A.charge()[(alpha + l) % 3] * voisins.charge()[(theta + l) % 3];
-            }
-        }
-    }
-    
-    return -U;
+    float H[6][6]; // [A][voisins]
+    H[0][0] = -0.0179792;
+    H[0][1] = 1.01101;
+    H[0][2] = -0.0468777;
+    H[0][3] = 0.988989;
+    H[0][4] = -0.0753328;
+    H[0][5] = -1.1096;
+    H[1][0] = 0.25988;
+    H[1][1] = -0.0179792;
+    H[1][2] = -0.0197036;
+    H[1][3] = -0.0753328;
+    H[1][4] = -0.238725;
+    H[1][5] = 0.0660521;
+    H[2][0] = 0.0660521;
+    H[2][1] = -1.1096;
+    H[2][2] = 0.0221328;
+    H[2][3] = -1.1096;
+    H[2][4] = 0.0660521;
+    H[2][5] = 1.25891;
+    H[3][0] = -0.238725;
+    H[3][1] = -0.0753328;
+    H[3][2] = -0.0197036;
+    H[3][3] = -0.0179792;
+    H[3][4] = 0.25988;
+    H[3][5] = 0.0660521;
+    H[4][0] = -0.0753328;
+    H[4][1] = 0.988989;
+    H[4][2] = -0.0468777;
+    H[4][3] = 1.01101;
+    H[4][4] = -0.0179792;
+    H[4][5] = -1.1096;
+    H[5][0] = -0.0197036;
+    H[5][1] = -0.0468777;
+    H[5][2] = 0.150482;
+    H[5][3] = -0.0468777;
+    H[5][4] = -0.0197036;
+    H[5][5] = 0.0221328; 
+
+    int theta = A.orientation() - nvoisins;
+    if (theta < 0) { theta += 6; }
+
+    int beta = voisins.orientation() - nvoisins;
+    if (beta < 0) { beta += 6; }
+
+    return H[theta % 6][beta% 6];
 }
 
 /* -- Renvoie l'énergie d'interaction entre 1 spinner et ses 6 voisin  -- */
@@ -169,11 +219,12 @@ float E_total(std::vector<Spinner>& spin, couplage J, int nx,  int ny) {
     {
         for (int i = j % 2; i < nx; i += 2) // ligne
         {
-            E += E_local(spin, i, J, nx, ny);
+            E += E_local(spin, i + j * nx, J, nx, ny);
         }
     }
     return  E; 
 }
+
 
 /*----Initialise une configuration de spinner------*/
 std::vector<Spinner> configuration_rand(int nx, int ny, unsigned int graine) { // graine dans srand(time(NULL))
@@ -391,7 +442,7 @@ void Recuit_all(std::vector<Spinner>& spin, std::vector<std::vector<int>>& data,
 
         print_E(C, spin, add + "_RC" + std::to_string(i) + "_T0" + std::to_string(T0), J, nx, ny);
 
-        print_dist(C, add + "_RC" + std::to_string(i) + "_T0" + std::to_string(T0), nx, ny);
+        print_dist(C, add + "_RC" + std::to_string(i) + "_T0" + std::to_string(T0), nx, ny, p);
 
         print_data(C, add + "_RC" + std::to_string(i) + "_T0" + std::to_string(T0), nx, ny);
 
@@ -413,7 +464,7 @@ void Recuit_allmeta(std::vector<Spinner>& spin, std::vector<std::vector<int>>& d
 
         print_E(C, spin, add + "_meta_RC" + std::to_string(i) + "_T0" + std::to_string(T0), J, nx, ny);
 
-        print_dist(C, add + "_meta_RC" + std::to_string(i) + "_T0" + std::to_string(T0), nx, ny);
+        print_dist(C, add + "_meta_RC" + std::to_string(i) + "_T0" + std::to_string(T0), nx, ny, p);
 
         print_data(C, add + "_meta_RC" + std::to_string(i) + "_T0" + std::to_string(T0), nx, ny);
 

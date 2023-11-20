@@ -1,54 +1,37 @@
 #include <iostream>
 #include <omp.h>
-#include "Spinner.h"
-#include "Functions.h"
-#include "Spinner_Dynamic.h"
+//#include "Spinner.h"
+//#include "Functions.h"
+//#include "Spinner_Dynamic.h"
+#include "spinner_ppm.h"
 #include <ctime>
 #include <cmath>
 #include <string>
-#include <fstream>
-
+//#include <fstream>
 
 
 int main() {
 
     clock_t debut = clock();
 
-    int graine = 500;
-    int n = 2;
+    double L = 0.025;
+    int nx = 5;
+    int ny = 5;
+    char add[] = "C:\\Users\\axelf\\OneDrive - Universite de Liege\\Mémoire\\simulation\\ppm_5x5";
+    char addspin[] = "C:\\Users\\axelf\\OneDrive - Universite de Liege\\Mémoire\\simulation\\ppm_5x5_L0.025_Elow.txt";
 
-    double lam = 0.90;
-    double T0 = 2;
-    double Tf = 0.003;
+    spinners_t spin;
+    spinners_init(&spin, L, nx, ny);
+    
+    
+    double* H = H_init(L);
+    H_plot(H);
 
-    couplage J;
-    J.J = 6;
-    J.Jdouble = -1;
-    J.Joppose = 0.0;
-    J.Jlow = 0.0;
-    J.Jlowc = 0.0;
-
-    int Niter = 1000;
-    int Nsimu = 20;
-
-    int p = 15;
-
-    std::string path = "C:\\Users\\axelf\\OneDrive - Universite de Liege\\Mémoire\\simulation\\++-\\";
-
-
-    /*for (int i = 0; i < 6; i++)
-    {
-        for (int j = 0; j < 6; j++)
-        {
-            std::vector<int> A = { -1,-2,-5 };
-            Spinner B(1, A, i);
-
-            std::vector<int> N = { 1,1,1 };
-            Spinner V(1, N, j);
-
-            std::cout << i << "\t" << j << "\t" << interaction(B, V, 5, JJ) << std::endl;
-        }
-    }*/
+    double* HB = H_B_init( 0, 0);
+    H_B_plot(HB);
+    
+  
+    Finalisation_simu(&spin, H, HB); 
 
     clock_t fin = clock();
     double tempsEcoule = (double)(fin - debut) / CLOCKS_PER_SEC;
@@ -57,3 +40,4 @@ int main() {
    
     return 0;
 }
+

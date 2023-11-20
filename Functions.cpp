@@ -158,7 +158,7 @@ float dist(const std::vector<int>& A, const std::vector<int>& B) {
             break;
         }
 
-        d += diff * 0.2741556; // * (pi/6)^2
+        d += diff * 1.0966227; // * (pi/3)^2
     }
     return sqrt(d);
 }
@@ -247,14 +247,15 @@ void clustering(std::vector<std::vector<float>>& A) // méthode de clustering
 
 /* ----------- calcule la matrice de distance et la probabilité de trouver ces distance ------------*/
 
-void print_dist(std::vector<std::vector<int>>& data, std::string add, int nx, int ny) {
+void print_dist(std::vector<std::vector<int>>& data, std::string add, int nx, int ny, int p) {
 
     if (data[0].size() != nx * ny + 1) { std::cout << "ERROR in print_dist : data[0].size() != nx * ny + 1" << std::endl; }
 
     int N = data.size();
     int n = data[0].size() - 1; 
     std::vector<std::vector<float>> matrice(N, std::vector<float>(N));
-    double dmax = 0;
+    std::map<float, int> prob;
+    #pragma omp parallel for schedule(dynamic) num_threads(p)
     for (int i = 0; i < N ; i++)
     {
         for (int j = 0; j <= i; j++)
@@ -262,24 +263,11 @@ void print_dist(std::vector<std::vector<int>>& data, std::string add, int nx, in
             float d = dist(data[i], data[j]);
             matrice[i][j] = d;
             matrice[j][i] = d;
-            if (d > dmax) { dmax = d; } 
+            prob[d] += data[i][n] * data[j][n];
         }
     }
-
-    
-    std::vector<double> prob(dmax * 100, 0);
-    for (int i = 0; i < N; i++) // -1 car la dernière colonne c'est la multiplicité de l'état
-    {
-        for (int j = 0; j < i; j++)
-        {
-            if (matrice[i][j] != 0)
-            {
-                prob[ (int)(100 * matrice[i][j]) - 1] += data[i][n] * data[j][n];
-            }
-        }
-    } 
     double normalisation = 0;
-    for (int i = 0; i < prob.size(); i++) { normalisation += prob[i]; }
+    for (const auto& pair : prob) { normalisation += pair.second; }
     
     tri(matrice);
 
@@ -292,92 +280,8 @@ void print_dist(std::vector<std::vector<int>>& data, std::string add, int nx, in
     {
         for (int i = 0; i < N; i++)
         {
-            
             fileDist << matrice[i][0];
-            for (int j = 1; j < N; j++)
-            {
-                fileDist << "\t" << matrice[i][j];
-            }
-            if (i != N - 1) { fileDist << std::endl; }
-        }
-    }
-    fileDist.close();
-
-    std::ofstream fileProb(add + "_PD" + ".txt", std::ios::out);
-
-    if ( !fileProb.is_open()) {
-        std::cout << "Erreur print_dist : Impossible d'ouvrir le fichier." << add + ".txt" << std::endl;
-    }
-    else
-    {
-        for (int i = 0; i < prob.size(); i++)
-        {
-            if(prob[i] != 0){ fileProb << (double)i * 0.01 + 1 << "\t" << prob[i] / normalisation << std::endl; }
-        }
-    }
-    fileProb.close();
-}
-
-/* ----------- calcule la matrice de distance en terme d'énergie et la probabilité de trouver ces distance ------------*/
-
-void print_dist_E(std::vector<std::vector<int>>& data, std::string add, std::vector<Spinner> &spin, couplage J, int nx, int ny) {
-
-    if (data[0].size() != nx * ny + 1) { std::cout << "ERROR in print_dist : data[0].size() != nx * ny + 1" << std::endl; }
-
-    int N = data.size();
-    int n = data[0].size() - 1;
-    std::vector<std::vector<float>> matrice(N, std::vector<float>(N));
-    
-    float dmax = 0;
-    std::vector<Spinner> spin0 = spin;
-    for (int i = 0; i < N; i++)
-    {
-        for (int k = 0; k < n; k++) { spin0[k].update_orientation(data[i][k]); }
-        float Ei = E_total(spin0, J, nx, ny);
-
-        for (int j = 0; j <= i; j++)
-        {
-            for (int k = 0; k < n; k++) { spin0[k].update_orientation(data[j][k]); }
-            float Ej = E_total(spin0, J, nx, ny);
-            float d = abs(Ei-Ej);
-            matrice[i][j] = d;
-            matrice[j][i] = d;
-            if (d > dmax) { dmax = d; }
-        }
-    }
-
-
-    std::vector<double> prob(dmax * 1000, 0);
-    for (int i = 0; i < N; i++) // -1 car la dernière colonne c'est la multiplicité de l'état
-    {
-        for (int j = 0; j < i; j++)
-        {
-            if (matrice[i][j] != 0)
-            {
-                prob[(int)(1000 * matrice[i][j]) - 1] += data[i][n] * data[j][n];
-            }
-        }
-    }
-    double normalisation = 0;
-    for (int i = 0; i < prob.size(); i++) { normalisation += prob[i]; }
-
-    tri(matrice);
-
-    std::ofstream fileDist(add + "_MD" + ".txt", std::ios::out);
-
-    if (!fileDist.is_open()) {
-        std::cout << "Erreur print_dist : Impossible d'ouvrir le fichier." << add + ".txt" << std::endl;
-    }
-    else
-    {
-        for (int i = 0; i < N; i++)
-        {
-
-            fileDist << matrice[i][0];
-            for (int j = 1; j < N; j++)
-            {
-                fileDist << "\t" << matrice[i][j];
-            }
+            for (int j = 1; j < N; j++){fileDist << "\t" << matrice[i][j]; }
             if (i != N - 1) { fileDist << std::endl; }
         }
     }
@@ -390,12 +294,77 @@ void print_dist_E(std::vector<std::vector<int>>& data, std::string add, std::vec
     }
     else
     {
-        for (int i = 0; i < prob.size(); i++)
-        {
-            if (prob[i] != 0) { fileProb << (double)i * 0.01 + 1 << "\t" << prob[i] / normalisation << std::endl; }
+        for (const auto& pair : prob) {
+            fileProb << pair.first << "\t" << (float)pair.second / (float)normalisation << "\n";
         }
     }
     fileProb.close();
+}
+
+/* ----------- calcule la matrice de distance en terme d'énergie et la probabilité de trouver ces distance ------------*/
+
+void print_dist_E(std::vector<std::vector<int>>& data, std::string add, std::vector<Spinner> &spin, couplage J, int nx, int ny, int p) {
+
+    if (data[0].size() != nx * ny + 1) { std::cout << "ERROR in print_dist_E : data[0].size() != nx * ny + 1" << std::endl; }
+
+    int N = data.size();
+    int n = data[0].size() - 1;
+    std::vector<std::vector<float>> matrice(N, std::vector<float>(N));
+    
+    std::vector<Spinner> spin0 = spin;
+    std::map<float, int> prob;
+    #pragma omp parallel for schedule(dynamic) num_threads(p)
+    for (int i = 0; i < N; i++)
+    {
+        for (int k = 0; k < n; k++) { spin0[k].update_orientation(data[i][k]); }
+        float Ei = E_total(spin0, J, nx, ny);
+
+        for (int j = 0; j <= i; j++)
+        {
+            for (int k = 0; k < n; k++) { spin0[k].update_orientation(data[j][k]); }
+            float Ej = E_total(spin0, J, nx, ny);
+            float d = abs(Ei-Ej); 
+            matrice[i][j] = d;
+            matrice[j][i] = d;
+            if (d!= 0) { prob[d] += data[i][n] * data[j][n]; }
+        }
+    }
+    double normalisation = 0;
+    for (const auto& pair : prob) { normalisation += pair.second; }
+
+    tri(matrice); 
+
+    std::ofstream fileDist(add + "_MDE" + ".txt", std::ios::out);
+
+    if (!fileDist.is_open()) {
+        std::cout << "Erreur print_dist_E : Impossible d'ouvrir le fichier." << add + ".txt" << std::endl;
+    }
+    else
+    {
+        for (int i = 0; i < N; i++)
+        {
+            fileDist << matrice[i][0];
+            for (int j = 1; j < N; j++)
+            {
+                fileDist << "\t" << matrice[i][j];
+            }
+            if (i != N - 1) { fileDist << std::endl; }
+        }
+    }
+    fileDist.close();
+
+    std::ofstream fileProb(add + "_PDE" + ".txt", std::ios::out);
+
+    if (!fileProb.is_open()) {
+        std::cout << "Erreur print_dist_E : Impossible d'ouvrir le fichier." << add + ".txt" << std::endl;
+    }
+    else
+    {
+        for (const auto& pair : prob) {
+            fileProb << pair.first << "\t" << (float)pair.second / (float)normalisation << "\n";
+        }
+    }
+    fileProb.close(); 
 }
 
 /* ----------- élimine les états équivalents, rend leurs multiplicité dans la dernière colonne ------------*/
@@ -470,8 +439,6 @@ bool metastable(const std::vector<int>& A, const  std::vector<Spinner>& spin0, c
 bool metastable(const std::vector<Spinner>& spin0, couplage J, int nx, int ny) {
     std::vector<Spinner> spin = spin0;
     bool stable = true;
-    const int max_angle = 5;
-    const int min_angle = 0;
 
     for (size_t i = 0; i < spin.size(); i++) {
         int angle = spin[i].orientation();
@@ -494,6 +461,41 @@ bool metastable(const std::vector<Spinner>& spin0, couplage J, int nx, int ny) {
     return stable;
 }
 
+/* ----------- vérifie que un états est métastable pour tout chagement hors des spinner de bords ------------*/
+
+bool metastable_heart(const std::vector<Spinner>& spin0, couplage J, int nx, int ny) {
+    std::vector<Spinner> spin = spin0;
+    bool stable = true;
+
+
+    for (size_t i = 0; i < spin.size(); i++) {
+
+        int ky = (i - i % nx) / nx;
+        int kx = i - ky * nx;
+
+        if (kx != 0 && kx != nx - 1 && ky != 0 && ky != ny - 1) {
+
+            int angle = spin[i].orientation();
+            float Eref = E_local(spin, i, J, nx, ny);
+
+            int anglep = (angle + 1) % 6;
+            int anglem = (angle - 1 + 6) % 6;
+
+            spin[i].update_orientation(anglep);
+            float Ep = E_local(spin, i, J, nx, ny);
+            spin[i].update_orientation(anglem);
+            float Em = E_local(spin, i, J, nx, ny);
+
+            spin[i].update_orientation(angle);
+            if (Em < Eref || Ep < Eref) {
+                stable = false;
+                break;
+            }
+        }
+    }
+    return stable;
+}
+
 
 /* ----------- vérifie que un états est métastable : tous changement entraine une augementation d E ------------*/
 void print_metastable(std::vector<std::vector<int>>& data, std::vector<Spinner>& spin0, std::string add, couplage J, int nx, int ny, int p)
@@ -511,6 +513,54 @@ void print_metastable(std::vector<std::vector<int>>& data, std::vector<Spinner>&
             file << state[0];
             for (int i = 1; i < state.size() ; i++) { file << "\t" << state[i]; }
             if (state != data.back()) { file << std::endl; }
+        }
+    }
+    file.close();
+}
+
+/* ----------- print tout les états métastable possible ------------*/
+void print_allmeta( std::vector<Spinner>& spin0, std::string add, couplage J, int nx, int ny)
+{
+
+    std::ofstream file(add + "_allmeta" + ".txt", std::ios::out);
+
+    if (!file.is_open()) {
+        std::cout << "Erreur print_metastable : Impossible d'ouvrir le fichier." << add + ".txt" << std::endl;
+    }
+    else
+    {
+        int n = nx * ny;
+        std::vector<int> digits(n, 0);
+
+        while (true) {
+            // Afficher la combinaison actuelle
+            for (int i = 0; i < n; i++) {
+                std::cout << digits[i] << " ";
+            }
+            std::cout << std::endl;
+
+            // Incrémenter la combinaison
+            int j = n - 1;
+            while (j >= 0 && digits[j] == 5) {
+                digits[j] = 0;
+                j--;
+            }
+
+            // Si tous les chiffres sont 5, nous avons terminé.
+            if (j < 0) {
+                break;
+            }
+
+            // Incrémenter le dernier chiffre non 5
+            digits[j]++;
+
+            for (int l = 0; l < nx * ny; l++) { spin0[l].update_orientation(digits[l]); }
+
+            if (metastable(spin0, J, nx, ny)) {
+                file << spin0[0].orientation();
+                for (int k = 1; k < nx * ny; k++) { file << "\t" << spin0[k].orientation(); }
+                file << std::endl;
+            }
         }
     }
     file.close();

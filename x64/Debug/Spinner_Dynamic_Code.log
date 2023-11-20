@@ -1,3 +1,2 @@
-﻿  main.cpp
-C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\main.cpp(38,16): warning C4244: 'initialisation' : conversion de 'double' en 'int', perte possible de données
+﻿  spinner_ppm.cpp
   Spinner_Dynamic_Code.vcxproj -> C:\Users\axelf\OneDrive - Universite de Liege\Mémoire\Spinner_Dynamic_Code\x64\Debug\Spinner_Dynamic_Code.exe
