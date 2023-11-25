@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
+//#include <map>
+#include <vector>
 
 /********************************************************************************/
 /*                                                                              */
@@ -114,11 +116,12 @@ void H_B_plot(double* HB) {
 /*                                                                              */
 /********************************************************************************/
 
-void spinners_init(spinners_t *spin, double L, int nx, int ny){
+void spinners_init(spinners_t *spin, double L, int nx, int ny, int Ngrid){
 
 	spin->L = L;
 	spin->nx = nx;
 	spin->ny = ny;
+	spin->Ngrid = Ngrid;
 
 	spin->angles = (int*)malloc(nx * ny * sizeof(int));
 
@@ -139,7 +142,7 @@ int* neighbour( spinners_t* spin, int index) { //  on part de en haut � gauche
     int ky = (index - index % spin->nx) / spin->nx;
 	int kx = index - ky * spin->nx; //printf("kx %d ky %d index %d\n", kx, ky, index);
 
-	int* voisins = (int*)malloc(SIZE_NEIGHBOUR* sizeof(int));
+	int* voisins = (int*)malloc(SIZE_NEIGHBOUR * sizeof(int));
 
 	if (voisins == NULL) {
 		fprintf(stderr, "neighbour : Allocation de m�moire �chou�e.\n");
@@ -268,7 +271,7 @@ FILE* openfile_out(char* add) {
 
 	 FILE* fichier = fopen(add, "w");
 
-    if (fichier != NULL) {
+    if (fichier == NULL) {
         fprintf(stderr, "openfile_out : Impossible d'ouvrir le fichier %s pour l'�criture.\n", add);
         exit(EXIT_FAILURE);
     }
@@ -279,7 +282,7 @@ FILE* openfile_in(char* add) {
 
 	FILE* fichier = fopen( add, "r");
 
-	if (fichier != NULL) {
+	if (fichier == NULL) {
 		fprintf(stderr, "openfile_in : Impossible d'ouvrir le fichier %s pour l'�criture.\n", add);
 		exit(EXIT_FAILURE);
 	}
@@ -297,13 +300,56 @@ void print_spinners(spinners_t* spin, FILE* fichier) {
 	fprintf(fichier, "\n");
 }
 
+void print_matrice(double* matrice, const int sizex, const int sizey, FILE* fichier) {
+
+	for(int i = 0; i < sizey ; i++){
+		fprintf(fichier, "%f", matrice[i * sizex]);
+		for(int j = 1; j < sizex ; j++){
+			fprintf(fichier, "\t%f", matrice[i * sizex + j]);
+		}
+		if(i < sizey - 1){fprintf(fichier, "\n");}
+	}
+}
+
 
 void read_spinners(spinners_t* spin, char* add) {
 
+	if(spin->Ngrid != 1){
+		printf("read_spinner : invalide Ngrid %d", spin->Ngrid );
+	}
 	FILE* fichier = openfile_in(add);
 	int N = spin->nx * spin->ny;
 	for (int i = 0; i < N; i++) {fscanf(fichier, "%d", &spin->angles[i]); }
 	fclose(fichier);
+}
+
+void read_spinnersall(spinners_t* spin, char* add, int nx, int ny, double L) {
+
+	FILE* fichier = openfile_in(add);
+	int N = nx * ny;
+	int value;
+	std::vector<int> input(0);
+	while (fscanf(fichier, "%d", &value) == 1) {input.push_back(value);}
+	spin->Ngrid = (int)input.size() / nx / ny; 
+	free(spin->angles);
+	spin->angles = (int*)malloc(input.size() * sizeof(int));
+	for(int i = 0; i < spin->Ngrid; i++){
+		for(int j = 0; j < N; j++){
+			spin->angles[N * i + j] = input[N * i + j];
+		}
+	}
+	fclose(fichier);
+}
+
+void plotall(spinners_t* spin){
+	int N = spin->nx * spin->ny;
+	for(int i = 0; i < spin->Ngrid; i++){
+		for(int j = 0; j < N; j++){
+			printf("%d\t", spin->angles[i * N + j]);
+		}
+		printf("\n");
+	}
+	printf("\n");
 }
 
 void recuit(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter) {
@@ -332,6 +378,96 @@ unsigned long factorielle(int n, int nmin) {
 	}
 }
 
+bool isequale(spinners_t* A, const int size, int offset1, int offset2){ // passer en cuda/openMP
+	for(int i = 0; i < size; i++){
+		if (A->angles[offset1 + i] != A->angles[offset2 + i]){
+			return false;
+		}
+	}
+	return true;
+}
+
+void remove_equale(spinners_t* spin){
+	int N = spin->nx * spin->ny;
+	bool* unicity = (bool*)malloc(spin->Ngrid * sizeof(bool));
+	if (unicity == NULL) {
+		fprintf(stderr, "remove_equal, unicity : Allocation de memoire echouee.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	for(int i = 0; i < spin->Ngrid; i++){unicity[i] = true;}
+	int sizeout = spin->Ngrid;
+	for(int i = 0; i < spin->Ngrid; i++){
+		if(unicity[i]){
+			for(int  j = i + 1; j < spin->Ngrid; j++){ // accelerable sur GPU
+				if(isequale(spin, N, i * N,  j * N)){
+					unicity[i] = false;
+					sizeout--;
+				}
+			}
+		}
+	}
+
+	int* out = (int*)malloc(sizeout * N * sizeof(int));
+	if (out == NULL) {
+		fprintf(stderr, "remove_equal, out : Allocation de memoire echouee.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	int k = 0;
+	for(int i = 0; i < spin->Ngrid; i++){
+		if(unicity[i]){
+			for(int j = 0; j < N ; j++){
+				out[N * k + j] = spin->angles[N * i + j];
+			}
+			k++;
+		}
+	}
+
+	int *new_angles = (int*)realloc(spin->angles, sizeout * N * sizeof(int));
+	if (new_angles == NULL) {
+        fprintf(stderr, "remove_equal, new_angles :Réallocation de mémoire échouée.\n");
+        exit(EXIT_FAILURE);
+    }
+	spin->angles = new_angles;
+	memcpy(spin->angles, out, sizeout * sizeof(int));
+	free(out);
+	free(unicity);
+	printf("Ngird = %d, after remove_equale %d\n", spin->Ngrid, sizeout );
+	spin->Ngrid = sizeout;
+}
+
+/********************************************************************************/
+/*                                                                              */
+/*                                distance                                      */
+/*                                                                              */
+/********************************************************************************/
+
+
+void print_dist(spinners_t* spin, char* add, char* distchar, double (*dist)(spinners_t*, int i, int j, int N)){
+	char path[STRING_MAX];
+	strcpy(path, add);
+	strcat(path, "_L"); 
+	snprintf(path + strlen(path), sizeof(path) - strlen(path), "%f", spin->L); 
+	strcat(path, "_dist.txt"); 
+	strcat(path, distchar); 
+	strcat(path, ".txt"); 
+
+	FILE* fichier = openfile_out(path);
+
+	const int N = spin->nx * spin->ny;
+	double* matrice = (double*)malloc( spin->Ngrid * spin->Ngrid * sizeof(double)); 
+	for(int i = 0; i < spin->Ngrid ; i ++){
+		for(int j = i; j < spin->Ngrid ; j ++){
+			matrice[i * N + j] = dist(spin, i, j, N);
+			matrice[j * N + i] = matrice[i * N + j];
+		}
+	}
+	print_matrice(matrice, spin->Ngrid, spin->Ngrid, fichier);
+	fclose(fichier);
+	free(matrice);
+}
+
 /********************************************************************************/
 /*                                                                              */
 /*                                experimente                                   */
@@ -340,6 +476,10 @@ unsigned long factorielle(int n, int nmin) {
 
 void print_allmeta(spinners_t* spin, double L, char* add) {
 	
+	if(spin->Ngrid != 1){
+		printf("read_spinner : invalide Ngrid %d", spin->Ngrid );
+	}
+
 	char path[STRING_MAX];
 	strcpy(path, add);
 	strcat(path, "_L"); 
@@ -378,6 +518,10 @@ void print_allmeta(spinners_t* spin, double L, char* add) {
 }
 
 void print_allmeta_B(spinners_t* spin, double L, char* add, double bx, double by) {
+
+	if(spin->Ngrid != 1){
+		printf("read_spinner : invalide Ngrid %d\n", spin->Ngrid );
+	}
 
 	char path[STRING_MAX];
 	strcpy(path, add);
@@ -422,6 +566,9 @@ void print_allmeta_B(spinners_t* spin, double L, char* add, double bx, double by
 
 void print_allmetaofL(spinners_t* spin, char* add, double L0, double LF, double Lpas)
 {
+	if(spin->Ngrid != 1){
+		printf("read_spinner : invalide Ngrid %d", spin->Ngrid );
+	}
 	FILE* fichier = openfile_out(add);
 
 	int N = spin->nx * spin->ny;
@@ -460,6 +607,10 @@ void print_allmetaofL(spinners_t* spin, char* add, double L0, double LF, double 
 
 void print_allmetaofBX(spinners_t* spin, double L, char* add, double B0, double BF, double Bpas)
 {
+	if(spin->Ngrid != 1){
+		printf("read_spinner : invalide Ngrid %d", spin->Ngrid );
+	}
+
 	FILE* fichier = openfile_out(add);
 
 	int N = spin->nx * spin->ny;
@@ -499,6 +650,10 @@ void print_allmetaofBX(spinners_t* spin, double L, char* add, double B0, double 
 
 void print_Emin( spinners_t* spin,  char* add, int Niters)
 {
+	if(spin->Ngrid != 1){
+		printf("read_spinner : invalide Ngrid %d", spin->Ngrid );
+	}
+
 	FILE* fichier = openfile_out(add);
 	double* H = H_init(spin->L);
 	double* HB = H_B_init(0, 0);
@@ -528,6 +683,9 @@ void print_Emin( spinners_t* spin,  char* add, int Niters)
 
 void print_neighbours_state_rand(spinners_t* spin, char* add, int Niters, int distance)
 {
+	if(spin->Ngrid != 1){
+		printf("read_spinner : invalide Ngrid %d", spin->Ngrid );
+	}
 	char path[STRING_MAX];
 	strcpy(path, add);
 	strcat(path, "_L");
@@ -626,6 +784,11 @@ void print_neighbours_state_all_for(spinners_t* spin, int distancemax, int dista
 
 void print_neighbours_state_all(spinners_t* spin, char* add, int distance)
 {
+
+	if(spin->Ngrid != 1){
+		printf("read_spinner : invalide Ngrid %d", spin->Ngrid );
+	}
+	
 	char path[STRING_MAX];
 	strcpy(path, add);
 	strcat(path, "_L");
@@ -643,3 +806,5 @@ void print_neighbours_state_all(spinners_t* spin, char* add, int distance)
 	free(index);
 	fclose(fichier);
 }
+
+

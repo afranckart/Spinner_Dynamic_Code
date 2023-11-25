@@ -16,7 +16,7 @@
 
 #define SIZE_H 6*6
 #define SIZE_NEIGHBOUR 6
-#define R 0.008 //distance entre le centre du dipôle et le centre du spinner [m]
+#define R 0.008 //distance entre le centre du dipo  le et le centre du spinner [m]
 #define STRING_MAX 256
 
 #define GETELEMENT(arr, i, v) arr[ i * 6 + v]
@@ -26,6 +26,7 @@ typedef struct spinners {
 	
 	int nx;
 	int ny;
+	int Ngrid;
 	double L;
 	int* angles;
 
@@ -33,7 +34,7 @@ typedef struct spinners {
 
 /********************************************************************************/
 /*                                                                              */
-/*                            comput Energy dipôle fct                          */
+/*                            comput Energy dipï¿½le fct                          */
 /*                                                                              */
 /********************************************************************************/
 
@@ -156,8 +157,10 @@ void H_B_plot(double* HB);
  * @param  nx [IN]  x-size of spinner grid
  * 
  * @param  ny [IN]  y-size of spinner grid
+ * 
+ * @param  Ngrid [IN]  number de grid
  */
-void spinners_init(spinners_t* spin, double L, int nx, int ny);
+void spinners_init(spinners_t* spin, double L, int nx, int ny, int Ngrid);
 
 /**
  * @brief free interaction tensor and spinners_t
@@ -268,14 +271,53 @@ void print_spinners(spinners_t* spin, FILE* fichier);
 
 
 /**
- * @brief read from a file : array spin->angles and put in a spinners_t
+ * @brief print a matrice sizex * sizey
+ *
+ * @param  matrice [IN] array to print 
+ *
+ * @param  spin [IN]  spin grid
+ * 
+ * @param  sizex [IN]  horizontale size of matrice
+ * 
+ * @param  sizey [IN]  verticale size of matrice
+ * 
+ * @param  fichier [IN]  file where write
+ */
+void print_matrice(double* matrice, const int sizex, const int sizey, FILE* fichier);
+
+
+/**
+ * @brief read from a file : array spin->angles and put in a spinners_t, if spin->Ngrid = 1
  *
  * @param  spin [INOUT]  spin grid
  *
- * @param  fichier [IN]  file where write
+ * @param  add [IN]  input file path
  */
 void read_spinners(spinners_t* spin, char* add);
 
+
+/**
+ * @brief read from a file : array spin->angles and put in a spinners_t, if spin->Ngrid != 1
+ *
+ * @param  spin [INOUT]  spin grid
+ *
+ * @param  add [IN]  input file path
+ * 
+ * @param  nx [IN]  x-size of spinner grid
+ * 
+ * @param  ny [IN]  y-size of spinner grid
+ * 
+ * @param  L [IN]  distance between tow spinners
+ */
+void read_spinnersall(spinners_t* spin, char* add, int nx, int ny, double L);
+
+
+/**
+ * @brief plot all grid in un spinner_t
+ *
+ * @param  spin [IN]  spinner_t with Ngrid
+ */
+void plotall(spinners_t* spin);
 
 /**
  * @brief annealing simualed of a spinner grid
@@ -293,12 +335,49 @@ void read_spinners(spinners_t* spin, char* add);
  * @param  lamnbda [IN]  paramter T *= lambda
  * 
  * @param  Niter [IN]  number of change at a fixed temperature
- * 
- * @param  fichier [IN]  file where write
  */
 void recuit(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter);
 
+/**
+ * @brief performe n!/nmin!
+ *
+ * @param  spin [IN]  spinner_t with Ngrid
+ * 
+ * @return n!/nmin!
+ */
 unsigned long factorielle(int n, int nmin);
+
+
+/**
+ * @brief check if 2 grid are equal
+ *
+ * @param  A [IN]  spinner_t with Ngrid
+ * 
+ * @param  size [IN]  nx * ny
+ * 
+ * @param  offset1 [IN]  position of a grid in spin->angles
+ *
+ * @param  offset2 [IN]  position of a grid in spin->angles
+ * 
+ * @return returne true if equale, false else
+ */
+bool isequale(spinners_t* A, const int size, int offset1, int offset2);
+
+
+/**
+ * @brief remove all duplicate grid of spin->angles
+ *
+ * @param  spin [INOUT]  spinner_t with Ngrid
+ */
+void remove_equale(spinners_t* spin);
+
+/********************************************************************************/
+/*                                                                              */
+/*                                distance                                      */
+/*                                                                              */
+/********************************************************************************/
+
+void print_dist(spinners_t* spin, char* add, char* distchar, double (*dist)(spinners_t*, int i, int j, int N));
 
 /********************************************************************************/
 /*                                                                              */
@@ -363,7 +442,6 @@ void print_allmetaofL(spinners_t* spin, char* add, double L0, double LF, double 
  * @param  Bpas [IN] pas of range
  */
 void print_allmetaofBX(spinners_t* spin, double L, char* add, double B0, double BF, double Bpas);
-
 
 void print_Emin(spinners_t* spin, char* add, int Niters);
 
