@@ -220,41 +220,41 @@ int* neighbour( spinners_t* spin, int index) { //  on part de en haut � gauche
 /*                                                                              */
 /********************************************************************************/
 
-double E_local(spinners_t* spin, int index, double* H, double* HB) {
+double E_local(spinners_t* spin, int index, double* H, double* HB, int offset) {
 
 	int* voisins = neighbour(spin, index);
 	double U = 0.;
 	for (int v = 0; v < SIZE_NEIGHBOUR; v++) {
 		if (voisins[v] != -1) {
-			U += GETELEMENT(H, (spin->angles[index] - v + 6) % 6, (spin->angles[voisins[v]] - v + 6) % 6); 
+			U += GETELEMENT(H, (spin->angles[index + offset] - v + 6) % 6, (spin->angles[voisins[v] + offset] - v + 6) % 6); 
 		}
 	}
 	free(voisins); 
 	return U + HB[( spin->angles[index] + 6) % 6];
 }
 
-double E_total(spinners_t* spin, double*H, double* HB) {
+double E_total(spinners_t* spin, double*H, double* HB, int offset) {
 	double U = 0.;
 	for (int j = 0; j < spin->ny; j++) // colonne
 	{
 		for (int i = 0; i < spin->nx; i ++) // ligne
 		{
-			U += E_local(spin, i + j * spin->nx, H, HB);
+			U += E_local(spin, i + j * spin->nx, H, HB, offset);
 		}
 	}
 	return U / 2.;
 }
 
-bool metastable(spinners_t* spin, double* H, double* HB) {
+bool metastable(spinners_t* spin, double* H, double* HB, int offset) {
 	int N = spin->ny * spin->nx;
 	for (int i = 0; i < N; i++) {
 
 		spin->angles[i]++;
-		double EP = E_local(spin, i, H, HB);
+		double EP = E_local(spin, i, H, HB, offset);
 		spin->angles[i] -= 2;
-		double EM = E_local(spin, i, H, HB);
+		double EM = E_local(spin, i, H, HB, offset);
 		spin->angles[i]++;
-		double ER = E_local(spin, i, H, HB); 
+		double ER = E_local(spin, i, H, HB, offset); 
 		if (EM < ER || EP < ER) { return false; }
 	}
 	return true;
@@ -293,9 +293,11 @@ FILE* openfile_in(char* add) {
 void print_spinners(spinners_t* spin, FILE* fichier) {
 
 	int N = spin->nx * spin->ny;
-	fprintf(fichier, "%d", spin->angles[0]);
-	for (int i = 1; i < N; i++) {
-		fprintf(fichier, "\t%d", (spin->angles[i] + 6) % 6);
+	for(int j = 0; j < spin->Ngrid; j++){
+		fprintf(fichier, "%d", spin->angles[0]);
+		for (int i = 1; i < N; i++) {
+			fprintf(fichier, "\t%d", (spin->angles[i] + 6) % 6);
+		}
 	}
 	fprintf(fichier, "\n");
 }
@@ -352,15 +354,15 @@ void plotall(spinners_t* spin){
 	printf("\n");
 }
 
-void recuit(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter) {
+void recuit(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int offset) {
 	int N = spin->ny * spin->nx;
 	for (double T = T0; T >= TF; T *= lambda) {
 		for (int i = 0; i < Niter; i++) {
 			int index = rand() % N;
-			double E0 = E_local(spin, index, H, HB);
+			double E0 = E_local(spin, index, H, HB, offset);
 			int signe = rand() % 2 == 0 ? 1 : -1;
 			spin->angles[index] += signe;
-			double EF = E_local(spin, index, H, HB); 
+			double EF = E_local(spin, index, H, HB, offset); 
 			if (E0 < EF) { 
 				double temp = (double)rand() / (double)RAND_MAX;
 				if (temp > exp((E0 - EF) / T)) { spin->angles[index] -= signe; }
@@ -400,7 +402,7 @@ void remove_equale(spinners_t* spin){
 	for(int i = 0; i < spin->Ngrid; i++){
 		if(unicity[i]){
 			for(int  j = i + 1; j < spin->Ngrid; j++){ // accelerable sur GPU
-				if(isequale(spin, N, i * N,  j * N)){
+				if(isequale(spin, N, i * N,  j * N) && unicity[i]){
 					unicity[i] = false;
 					sizeout--;
 				}
@@ -424,13 +426,13 @@ void remove_equale(spinners_t* spin){
 		}
 	}
 
-	int *new_angles = (int*)realloc(spin->angles, sizeout * N * sizeof(int));
-	if (new_angles == NULL) {
+	spin->angles = (int*)realloc(spin->angles, sizeout * N * sizeof(int));
+	if (spin->angles == NULL) {
         fprintf(stderr, "remove_equal, new_angles :Réallocation de mémoire échouée.\n");
         exit(EXIT_FAILURE);
     }
-	spin->angles = new_angles;
-	memcpy(spin->angles, out, sizeout * sizeof(int));
+	
+	memcpy(spin->angles, out, sizeout * N * sizeof(int));
 	free(out);
 	free(unicity);
 	printf("Ngird = %d, after remove_equale %d\n", spin->Ngrid, sizeout );
@@ -510,7 +512,7 @@ void print_allmeta(spinners_t* spin, double L, char* add) {
 		// Incr�menter le dernier chiffre non 5
 		spin->angles[j]++;
 
-		if (metastable(spin, H, HB)) { print_spinners(spin, fichier); }
+		if (metastable(spin, H, HB, 0)) { print_spinners(spin, fichier); }
 	}
 	free(H);
 	free(HB);
@@ -557,7 +559,7 @@ void print_allmeta_B(spinners_t* spin, double L, char* add, double bx, double by
 		// Incr�menter le dernier chiffre non 5
 		spin->angles[j]++; 
 		
-		if (metastable(spin, H, HB)) { print_spinners(spin, fichier); }
+		if (metastable(spin, H, HB, 0)) { print_spinners(spin, fichier); }
 	}
 	free(H);
 	free(HB);
@@ -595,7 +597,7 @@ void print_allmetaofL(spinners_t* spin, char* add, double L0, double LF, double 
 			// Incr�menter le dernier chiffre non 5
 			spin->angles[j]++;
 
-			if (metastable(spin, H, HB)) { Nstable++; }
+			if (metastable(spin, H, HB, 0)) { Nstable++; }
 		}
 		free(H);
 		fprintf(fichier, "%f\t%d ", l, Nstable);
@@ -637,7 +639,7 @@ void print_allmetaofBX(spinners_t* spin, double L, char* add, double B0, double 
 			// Incr�menter le dernier chiffre non 5
 			spin->angles[j]++;
 
-			if (metastable(spin, H, HB)) { Nstable++; }
+			if (metastable(spin, H, HB, 0)) { Nstable++; }
 		}
 		free(H);
 		free(HB);
@@ -665,15 +667,48 @@ void print_Emin( spinners_t* spin,  char* add, int Niters)
 
 	for (int i = 0; i < Niters; i++) {
 		for (int j = 0; j < N; j++) { spin->angles[j] = rand() % 6; }
-		recuit(spin, H, HB, 10, 0.0001, 0.95, 5 * N);
-		double E = E_total(spin, H, HB);
-		if (E < Emin && metastable(spin, H, HB)) { 
+		recuit(spin, H, HB, 10, 0.0001, 0.95, 5 * N, 0);
+		double E = E_total(spin, H, HB, 0);
+		if (E < Emin && metastable(spin, H, HB, 0)) { 
 			Emin = E;
 			for (int l = 0; l < N; l++) { spinmin[l] = spin->angles[l]; }
 		}
 	}
 	for (int l = 0; l < N; l++) { spin->angles[l] = spinmin[l]; }
-	printf("EF = %f metastable : %d\n", Emin, metastable(spin, H, HB));
+	printf("EF = %f metastable : %d\n", Emin, metastable(spin, H, HB, 0));
+	print_spinners(spin, fichier);
+	free(H);
+	free(HB);
+	free(spinmin);
+	fclose(fichier);
+}
+
+void print_Emax( spinners_t* spin,  char* add, int Niters)
+{
+	if(spin->Ngrid != 1){
+		printf("read_spinner : invalide Ngrid %d", spin->Ngrid );
+	}
+
+	FILE* fichier = openfile_out(add);
+	double* H = H_init(spin->L);
+	double* HB = H_B_init(0, 0);
+	int N = spin->nx * spin->ny;
+	double Emax = -1000000. * N;
+	int* spinmin = (int*)malloc(N * sizeof(int));
+
+	srand((unsigned int)time(NULL));
+
+	for (int i = 0; i < Niters; i++) {
+		for (int j = 0; j < N; j++) { spin->angles[j] = rand() % 6; }
+		recuit(spin, H, HB, 0.0001, 0.00001, 0.5, 5 * N, 0);
+		double E = E_total(spin, H, HB, 0);
+		if (E > Emax && metastable(spin, H, HB, 0)) { 
+			Emax = E;
+			for (int l = 0; l < N; l++) { spinmin[l] = spin->angles[l]; }
+		}
+	}
+	for (int l = 0; l < N; l++) { spin->angles[l] = spinmin[l]; }
+	printf("nx = %d ny = %d, EF = %f metastable : %d\n",spin->nx, spin->ny, Emax, metastable(spin, H, HB, 0));
 	print_spinners(spin, fichier);
 	free(H);
 	free(HB);
@@ -721,7 +756,7 @@ void print_neighbours_state_rand(spinners_t* spin, char* add, int Niters, int di
 		if (go) {
 			for (int j = 0; j < distance; j++) { changes[j] = rand() % 2 == 0 ? 1 : -1; }
 			for (int j = 0; j < distance; j++) { spin->angles[indexes[j]] += changes[j]; }
-			if (metastable(spin, H, HB)) { 
+			if (metastable(spin, H, HB, 0)) { 
 				print_spinners(spin, fichier);
 				track++;
 			}
@@ -755,12 +790,12 @@ void print_neighbours_state_all_for(spinners_t* spin, int distancemax, int dista
 			}
 			if (go) {
 				spin->angles[i] += 1;
-				if (metastable(spin, H, HB)) {
+				if (metastable(spin, H, HB, 0)) {
 					print_spinners(spin, fichier);
 					*track += 1; 
 				}
 				spin->angles[i] -= 2;
-				if (metastable(spin, H, HB)) {
+				if (metastable(spin, H, HB, 0)) {
 					print_spinners(spin, fichier);
 					*track += 1;
 				}
@@ -807,4 +842,31 @@ void print_neighbours_state_all(spinners_t* spin, char* add, int distance)
 	fclose(fichier);
 }
 
+void recuitN(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int Nsimu){
 
+	int N = spin->nx * spin->ny;
+	int* angles0 = (int*)malloc(N * sizeof(int));
+	if (angles0  == NULL) {
+        fprintf(stderr, "recuitN, angles0 failled to malloc\n");
+        exit(EXIT_FAILURE);
+	}
+
+	memcpy(angles0, spin->angles, N * sizeof(int));
+	spin->angles = (int*)realloc(spin->angles, Nsimu * N * sizeof(int));
+	if (spin->angles == NULL) {
+    	fprintf(stderr, "recuitN, échec de l'allocation mémoire.\n");
+    	exit(EXIT_FAILURE);	
+	}
+
+	spin->Ngrid = Nsimu;
+	for(int i = 0; i < spin->Ngrid; i++){
+		for(int j = 0; j < N; j++){
+			spin->angles[i * N + j] = angles0[j];
+		}
+	}
+	free(angles0);
+	for(int i = 0; i < spin->Ngrid ; i++){
+		recuit(spin, H, HB, T0, TF, lambda, Niter, N * i);
+	}
+	remove_equale(spin);
+}

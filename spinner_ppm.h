@@ -34,7 +34,7 @@ typedef struct spinners {
 
 /********************************************************************************/
 /*                                                                              */
-/*                            comput Energy dip�le fct                          */
+/*                            comput Energy dipole fct                          */
 /*                                                                              */
 /********************************************************************************/
 
@@ -201,10 +201,12 @@ int* neighbour( spinners_t* spin, int index);
  * @param  H [IN]  interaction tensor dipole dipole
  *
  * @param  HB [IN]  interaction tensor dipole B-field
+ * 
+ * @param  offest [IN]  position oh the grid considered int spin->angles
  *
  * @return local Energy
  */
-double E_local(spinners_t* spin, int index, double* H, double* HB);
+double E_local(spinners_t* spin, int index, double* H, double* HB, int offset);
 
 
 /**
@@ -215,10 +217,12 @@ double E_local(spinners_t* spin, int index, double* H, double* HB);
  * @param  H [IN]  interaction tensor dipole dipole
  *
  * @param  HB [IN]  interaction tensor dipole B-field
+ * 
+ * @param  offest [IN]  position oh the grid considered int spin->angles
  *
  * @return total Energy
  */
-double E_total(spinners_t* spin, double* H, double* HB);
+double E_total(spinners_t* spin, double* H, double* HB, int offset);
 
 /**
  * @brief detremine if spinner configuration is metastable
@@ -228,10 +232,12 @@ double E_total(spinners_t* spin, double* H, double* HB);
  * @param  H [IN]  interaction tensor dipole dipole
  *
  * @param  HB [IN]  interaction tensor dipole B-field
+ * 
+ * @param  offest [IN]  position oh the grid considered int spin->angles
  *
  * @return true if spinner configuration is metastable, or false
  */
-bool metastable(spinners_t* spin, double* H, double* HB);
+bool metastable(spinners_t* spin, double* H, double* HB, int offset);
 
 
 /********************************************************************************/
@@ -335,8 +341,10 @@ void plotall(spinners_t* spin);
  * @param  lamnbda [IN]  paramter T *= lambda
  * 
  * @param  Niter [IN]  number of change at a fixed temperature
+ * 
+ * @param  offest [IN]  position oh the grid considered int spin->angles
  */
-void recuit(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter);
+void recuit(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int offset);
 
 /**
  * @brief performe n!/nmin!
@@ -445,8 +453,12 @@ void print_allmetaofBX(spinners_t* spin, double L, char* add, double B0, double 
 
 void print_Emin(spinners_t* spin, char* add, int Niters);
 
+void print_Emax(spinners_t* spin, char* add, int Niters);
+
 void print_neighbours_state_rand(spinners_t* spin, char* add, int Niters, int distance);
 
 void print_neighbours_state_all_for(spinners_t* spin, int distancemax, int distance, int* index, int *track, FILE* fichier);
 
 void print_neighbours_state_all(spinners_t* spin, char* add, int distance);
+
+void recuitN(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int Nsimu);

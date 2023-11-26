@@ -181,11 +181,11 @@ def print_spinner_arrow(n, direc, add): #pour un ppm
     plt.close()
 
 
-direc = 'C:\\Users\\axelf\\OneDrive - Universite de Liege\\Mémoire\\simulation\\Ndistance_all\\'
-for i in range(1,2):
-    # add = 'ppm_' + str(i) + 'x' + str(i) + '_L0.025_Elow' 
-    add = 'ppm_5x5_L0.025000_distance5_all' 
+direc = 'C:\\Users\\axelf\\OneDrive - Universite de Liege\\Mémoire\\simulation\\'
+for i in range(2,11):
+    add = 'ppm_' + str(i) + 'x' + str(i) + '_L0.025_Ehight' 
+    #add = 'ppm_5x5_L0.025000_distance5_all' 
 
     n = 2
 
-    print_matrice(5, 5, direc, add)
+    print_spinner(i, i, direc, add)
