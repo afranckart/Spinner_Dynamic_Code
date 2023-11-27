@@ -7,6 +7,8 @@
 #include <time.h>
 //#include <map>
 #include <vector>
+#include <omp.h>
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -298,8 +300,8 @@ void print_spinners(spinners_t* spin, FILE* fichier) {
 		for (int i = 1; i < N; i++) {
 			fprintf(fichier, "\t%d", (spin->angles[i] + 6) % 6);
 		}
+		fprintf(fichier, "\n");
 	}
-	fprintf(fichier, "\n");
 }
 
 void print_matrice(double* matrice, const int sizex, const int sizey, FILE* fichier) {
@@ -354,20 +356,20 @@ void plotall(spinners_t* spin){
 	printf("\n");
 }
 
-void recuit(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int offset) {
+void recuit(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int offset, unsigned int* seed) {
 	int N = spin->ny * spin->nx;
 	for (double T = T0; T >= TF; T *= lambda) {
 		for (int i = 0; i < Niter; i++) {
-			int index = rand() % N;
+			int index = rand_r(seed) % N;
 			double E0 = E_local(spin, index, H, HB, offset);
-			int signe = rand() % 2 == 0 ? 1 : -1;
-			spin->angles[index] += signe;
+			int signe = rand_r(seed) % 2 == 0 ? 1 : -1;
+			spin->angles[index + offset] += signe;
 			double EF = E_local(spin, index, H, HB, offset); 
 			if (E0 < EF) { 
-				double temp = (double)rand() / (double)RAND_MAX;
-				if (temp > exp((E0 - EF) / T)) { spin->angles[index] -= signe; }
+				double temp = (double)rand_r(seed) / (double)RAND_MAX;
+				if (temp > exp((E0 - EF) / T)) { spin->angles[index + offset] -= signe; }
 			}
-			spin->angles[index] = (spin->angles[index] + 6) % 6;
+			spin->angles[index + offset] = (spin->angles[index + offset] + 6) % 6;
 		}
 	}
 }
@@ -663,11 +665,11 @@ void print_Emin( spinners_t* spin,  char* add, int Niters)
 	double Emin = 1000000 * N;
 	int* spinmin = (int*)malloc(N * sizeof(int));
 
-	srand((unsigned int)time(NULL));
+	unsigned int seed = (unsigned int)time(NULL);
 
 	for (int i = 0; i < Niters; i++) {
 		for (int j = 0; j < N; j++) { spin->angles[j] = rand() % 6; }
-		recuit(spin, H, HB, 10, 0.0001, 0.95, 5 * N, 0);
+		recuit(spin, H, HB, 10, 0.0001, 0.95, 5 * N, 0, &seed);
 		double E = E_total(spin, H, HB, 0);
 		if (E < Emin && metastable(spin, H, HB, 0)) { 
 			Emin = E;
@@ -696,11 +698,11 @@ void print_Emax( spinners_t* spin,  char* add, int Niters)
 	double Emax = -1000000. * N;
 	int* spinmin = (int*)malloc(N * sizeof(int));
 
-	srand((unsigned int)time(NULL));
+	unsigned int seed = (unsigned int)time(NULL);
 
 	for (int i = 0; i < Niters; i++) {
 		for (int j = 0; j < N; j++) { spin->angles[j] = rand() % 6; }
-		recuit(spin, H, HB, 0.0001, 0.00001, 0.5, 5 * N, 0);
+		recuit(spin, H, HB, 0.0001, 0.00001, 0.5, 5 * N, 0, &seed);
 		double E = E_total(spin, H, HB, 0);
 		if (E > Emax && metastable(spin, H, HB, 0)) { 
 			Emax = E;
@@ -842,7 +844,7 @@ void print_neighbours_state_all(spinners_t* spin, char* add, int distance)
 	fclose(fichier);
 }
 
-void recuitN(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int Nsimu){
+void recuitN(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int Nsimu, int p){
 
 	int N = spin->nx * spin->ny;
 	int* angles0 = (int*)malloc(N * sizeof(int));
@@ -865,8 +867,15 @@ void recuitN(spinners_t* spin, double* H, double* HB, double T0, double TF, doub
 		}
 	}
 	free(angles0);
-	for(int i = 0; i < spin->Ngrid ; i++){
-		recuit(spin, H, HB, T0, TF, lambda, Niter, N * i);
+
+	#pragma omp parallel num_threads(p)
+	{	
+		unsigned int seed = (unsigned int)time(NULL) + omp_get_thread_num();
+		#pragma omp for
+		for(int i = 0; i < spin->Ngrid ; i++){
+			recuit(spin, H, HB, T0, TF, lambda, Niter, N * i, &seed);
+		}
 	}
+
 	remove_equale(spin);
 }

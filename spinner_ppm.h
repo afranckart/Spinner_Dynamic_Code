@@ -343,8 +343,10 @@ void plotall(spinners_t* spin);
  * @param  Niter [IN]  number of change at a fixed temperature
  * 
  * @param  offest [IN]  position oh the grid considered int spin->angles
+ * 
+ * @param  seed [IN]  seed for rand_d threat safe
  */
-void recuit(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int offset);
+void recuit(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int offset, unsigned int* seed);
 
 /**
  * @brief performe n!/nmin!
@@ -461,4 +463,4 @@ void print_neighbours_state_all_for(spinners_t* spin, int distancemax, int dista
 
 void print_neighbours_state_all(spinners_t* spin, char* add, int distance);
 
-void recuitN(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int Nsimu);
+void recuitN(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int Nsimu, int p);

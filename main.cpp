@@ -15,13 +15,11 @@ int main() {
     //char add[] = "ppm_2x2_L0.025000_allmeta.txt";
 
     
-    #pragma omp parallel for
+    
     for(int j = 1; j < 11; j++){
         double i = j/10.;
 
         int num_threads = omp_get_num_threads();
-        int thread_num = omp_get_thread_num();
-        printf("I am %d on %d\n", thread_num, num_threads);
 
         double L = 0.025;
         int nx = 10;
@@ -36,9 +34,11 @@ int main() {
         double* HB = H_B_init(0, 0);
         //H_B_plot(HB);
 
+        srand((unsigned int)time(NULL));
+
         std::string direc = "/mnt/c/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/";
         
-        std::string add = direc + "ppm_"+ std::to_string(nx) +"x"+ std::to_string(ny) + "_L0.025_T0"+std::to_string(i) + "_recuit500.txt";
+        std::string add = direc + "ppm_"+ std::to_string(nx) +"x"+ std::to_string(ny) + "_L0.025_T0"+std::to_string(i) + "_recuit1000.txt";
         char* addspin = new char[add.length() + 1];
         std::strcpy(addspin, add.c_str());
 
@@ -48,7 +48,7 @@ int main() {
         std::strcpy(spin0, add0.c_str());
         
         read_spinners(&spin, spin0);
-        recuitN(&spin, H, HB, i, 0.0001, 0.95, 5 * nx * ny, 1000);
+        recuitN(&spin, H, HB, i, 0.001, 0.95, 5 * nx * ny, 1000, 10);
         FILE* fichier = openfile_out(addspin);
         print_spinners(&spin, fichier);
         fclose(fichier);
