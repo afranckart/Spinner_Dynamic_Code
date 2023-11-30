@@ -525,7 +525,8 @@ double dist_HI(spinners_t* spin, int i, int j, int N, double* H, double * HB){
 		double dd = 0;
 		int* voisins = neighbour(spin, k);
 		for(int l = 0; l < SIZE_NEIGHBOUR; l++){
-			if(voisins[l] != -1){dd += pow( spin->angles[i * N + k] - spin->angles[j * N + voisins[l]] , 2);}
+			if(voisins[l] != -1){dd += pow( spin->angles[i * N + k] - spin->angles[i * N + voisins[l]]
+			 - spin->angles[j * N + k] + spin->angles[j * N + voisins[l]] , 2);}
 		}
 		d += dd;
 		free(voisins);
@@ -537,7 +538,7 @@ void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *H
 	char path[STRING_MAX];
 	strcpy(path, add);
 	strcat(path, "_L"); 
-	snprintf(path + strlen(path), sizeof(path) - strlen(path), "%f", spin->L); 
+	snprintf(path + strlen(path), sizeof(path) - strlen(path), "%f", spin->L);
 	strcat(path, "_dist"); 
 	strcat(path, distchar); 
 	strcat(path, ".txt"); 
@@ -578,7 +579,7 @@ void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *H
 /********************************************************************************/
 
 void tri(double** matrice, int N){
-	if (N < 2) {
+	if (N < 1) {
 		fprintf(stderr, "tri, matriceDIST : Allocation de memoire echoueeinvalide size of matrice");
 		exit(EXIT_FAILURE);
 	}
@@ -591,7 +592,7 @@ void tri(double** matrice, int N){
 	for(int i = 0; i < N; i++){ // accelerate GPU
 		for(int j = i; j < N; j++){
 			double d = 0;
-			for(int k = 0; k < N; k++){d += abs(matrice[i][k] - matrice[j][k]);}
+			for(int k = 0; k < N; k++){d += fabs(matrice[i][k] - matrice[j][k]);}
 			matriceDIST[i * N + j] = d;
 			matriceDIST[j * N + i] = d;
 		}
@@ -605,27 +606,43 @@ void tri(double** matrice, int N){
 	for(int i = 0; i < N; i++){posline[i] = i;}
 	
 	for (int i = 0; i < N - 1; i++) {
-        double d = matriceDIST[i * N + i + 1];
+        double d = matriceDIST[posline[i] * N + posline[i + 1]];
         for (int j = i + 2; j < N; j++) {
-            if (matriceDIST[posline[j] * N + posline[i]] <= d) {
+            if (matriceDIST[posline[i] * N + posline[j]] <= d) {
                 int temp = posline[i + 1];
                 posline[i + 1] = posline[j];
                 posline[j] = temp;
-				d = matriceDIST[posline[j] * N + posline[i]];
+				d = matriceDIST[posline[i] * N + posline[j]];
             }
         }
     }
 
-	for(int i = 0; i < N; i++){
-		for(int j = 0; j < N; j++){
-			double change = matrice[i][j];
-			matrice[i][j] = matrice[posline[i]][posline[j]];
-			matrice[posline[i]][posline[j]] = change;
-		}
-	}
 
-	free(posline);
-	free(matriceDIST);
+	double** tempMatrice = (double**)malloc(N * sizeof(double*));
+    if (tempMatrice == NULL) {
+        fprintf(stderr, "tri, tempMatrice : Allocation de memoire echouee.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < N; i++) {
+        tempMatrice[i] = (double*)malloc(N * sizeof(double));
+        if (tempMatrice[i] == NULL) {
+            fprintf(stderr, "tri, tempMatrice : Allocation de memoire echouee.\n");
+            exit(EXIT_FAILURE);
+        }
+        memcpy(tempMatrice[i], matrice[posline[i]], N * sizeof(double));
+    }
+
+    for (int i = 0; i < N; i++) {
+		for(int j = 0; j < N; j++){
+			matrice[i][j] = tempMatrice[i][posline[j]];
+		}
+        free(tempMatrice[i]);
+    }
+
+    free(tempMatrice);
+    free(posline);
+    free(matriceDIST);
 }
 
 /********************************************************************************/

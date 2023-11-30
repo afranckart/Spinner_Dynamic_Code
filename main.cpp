@@ -14,7 +14,7 @@ int main() {
 
     
     
-    for(int j = 20; j < 21; j++){
+    for(int j = 1; j < 101; j++){
         double i = j/100.;
 
         int num_threads = omp_get_num_threads();
@@ -27,7 +27,7 @@ int main() {
         spinners_init(&spin, L, nx, ny, 1);
     
         double* H = H_init(L);
-        //H_plot(H);
+        //H_plot(H)
 
         double* HB = H_B_init(0, 0);
         //H_B_plot(HB);
@@ -41,12 +41,16 @@ int main() {
         std::strcpy(addspin, add.c_str());
 
 
-        std::string add0 = direc + "ppm_10x10";
+        std::string add0 = direc + "ppm_10x10" + "_T0" + std::to_string(i) ;
         char* spin0 = new char[add0.length() + 1];
         std::strcpy(spin0, add0.c_str());
         
+
         read_spinnersall(&spin, addspin, nx, ny, L);
+        print_dist(&spin, spin0, "EG", H, HB, dist_EG);
         print_dist(&spin, spin0, "EL", H, HB, dist_EL);
+        print_dist(&spin, spin0, "H", H, HB, dist_H);
+        print_dist(&spin, spin0, "HI", H, HB, dist_HI);
         //recuitN(&spin, H, HB, i, 0.001, 0.95, 5 * nx * ny, 1000, 10);
         //FILE* fichier = openfile_out(addspin);
         //print_spinners(&spin, fichier);
