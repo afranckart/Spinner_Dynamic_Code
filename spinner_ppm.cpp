@@ -580,7 +580,7 @@ void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *H
 
 void tri(double** matrice, int N){
 	if (N < 1) {
-		fprintf(stderr, "tri, matriceDIST : Allocation de memoire echoueeinvalide size of matrice");
+		fprintf(stderr, "tri, matriceDIST : Allocation de memoire echouee invalide size of matrice\n");
 		exit(EXIT_FAILURE);
 	}
 	double* matriceDIST = (double*)malloc(N * N * sizeof(double));
@@ -605,10 +605,11 @@ void tri(double** matrice, int N){
 	}
 	for(int i = 0; i < N; i++){posline[i] = i;}
 	
+	
 	for (int i = 0; i < N - 1; i++) {
         double d = matriceDIST[posline[i] * N + posline[i + 1]];
         for (int j = i + 2; j < N; j++) {
-            if (matriceDIST[posline[i] * N + posline[j]] <= d) {
+            if (matriceDIST[posline[i] * N + posline[j]] < d) {
                 int temp = posline[i + 1];
                 posline[i + 1] = posline[j];
                 posline[j] = temp;
@@ -616,7 +617,6 @@ void tri(double** matrice, int N){
             }
         }
     }
-
 
 	double** tempMatrice = (double**)malloc(N * sizeof(double*));
     if (tempMatrice == NULL) {
