@@ -578,26 +578,14 @@ void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *H
 /*                                                                              */
 /********************************************************************************/
 
-void tri(double** matrice, int N){
-	if (N < 1) {
-		fprintf(stderr, "tri, matriceDIST : Allocation de memoire echouee invalide size of matrice\n");
-		exit(EXIT_FAILURE);
-	}
-	double* matriceDIST = (double*)malloc(N * N * sizeof(double));
-	if (matriceDIST == NULL) {
-		fprintf(stderr, "tri, matriceDIST : Allocation de memoire echouee.\n");
-		exit(EXIT_FAILURE);
-	}
-	/*on crer une matrice de la distance dij entre les lignes de la matrice initial*/
-	for(int i = 0; i < N; i++){ // accelerate GPU
-		for(int j = i; j < N; j++){
-			double d = 0;
-			for(int k = 0; k < N; k++){d += fabs(matrice[i][k] - matrice[j][k]);}
-			matriceDIST[i * N + j] = d;
-			matriceDIST[j * N + i] = d;
-		}
-	}
+double distline(double* A, double* B, int N){
+	double d = 0;
+	for(int i = 0; i < N; i++){ d += fabs(A[i] - B[i]);}
+	return d;
+}
 
+void tri(double** matrice, int N){
+	
 	int* posline = (int*)malloc(N * sizeof(int));
 	if (posline == NULL) {
 		fprintf(stderr, "tri, posline : Allocation de memoire echouee.\n");
@@ -605,44 +593,35 @@ void tri(double** matrice, int N){
 	}
 	for(int i = 0; i < N; i++){posline[i] = i;}
 	
-	
 	for (int i = 0; i < N - 1; i++) {
-        double d = matriceDIST[posline[i] * N + posline[i + 1]];
+        double dmin = distline(matrice[i], matrice[i + 1], N);
         for (int j = i + 2; j < N; j++) {
-            if (matriceDIST[posline[i] * N + posline[j]] < d) {
-                int temp = posline[i + 1];
-                posline[i + 1] = posline[j];
-                posline[j] = temp;
-				d = matriceDIST[posline[i] * N + posline[j]];
+			double d = distline(matrice[i], matrice[j], N);
+            if (d < dmin) {
+				double* change = matrice[j];
+				matrice[j] = matrice[i + 1];
+				matrice[i + 1] = change;
+				
+				int temp = posline[j];
+				posline[j] = posline[i + 1];
+				posline[i + 1] = temp;
+
+				dmin = d;
             }
         }
     }
 
-	double** tempMatrice = (double**)malloc(N * sizeof(double*));
-    if (tempMatrice == NULL) {
-        fprintf(stderr, "tri, tempMatrice : Allocation de memoire echouee.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    for (int i = 0; i < N; i++) {
-        tempMatrice[i] = (double*)malloc(N * sizeof(double));
-        if (tempMatrice[i] == NULL) {
-            fprintf(stderr, "tri, tempMatrice : Allocation de memoire echouee.\n");
-            exit(EXIT_FAILURE);
-        }
-        memcpy(tempMatrice[i], matrice[posline[i]], N * sizeof(double));
-    }
-
-    for (int i = 0; i < N; i++) {
-		for(int j = 0; j < N; j++){
-			matrice[i][j] = tempMatrice[i][posline[j]];
+	for(int i = 0; i < N; i++){
+		double* change = (double*)malloc(N * sizeof(double));
+		if (change == NULL) {
+			fprintf(stderr, "tri, change : Allocation de memoire echouee.\n");
+			exit(EXIT_FAILURE);
 		}
-        free(tempMatrice[i]);
-    }
-
-    free(tempMatrice);
+		for(int j = 0; j < N; j++){change[j] = matrice[i][j];}
+		for(int j = 0; j < N; j++){matrice[i][j] = change[posline[j]];}
+		free(change);
+	}
     free(posline);
-    free(matriceDIST);
 }
 
 /********************************************************************************/

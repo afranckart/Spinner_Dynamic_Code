@@ -415,6 +415,8 @@ void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *H
 /*                                                                              */
 /********************************************************************************/
 
+double distline(double* A, double* B, int N);
+
 void tri(double** matrice, int N);
 
 /********************************************************************************/

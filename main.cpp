@@ -13,8 +13,8 @@ int main() {
     clock_t debut = clock();
 
     
-    
-    for(int j = 67; j < 68; j++){
+     #pragma omp parallel for num_threads(5)
+    for(int j = 1; j < 101; j++){
         double i = j/100.;
 
         int num_threads = omp_get_num_threads();
@@ -48,9 +48,9 @@ int main() {
 
         read_spinnersall(&spin, addspin, nx, ny, L);
         print_dist(&spin, spin0, "EG", H, HB, dist_EG);
-        //print_dist(&spin, spin0, "EL", H, HB, dist_EL);
-        //print_dist(&spin, spin0, "H", H, HB, dist_H);
-        //print_dist(&spin, spin0, "HI", H, HB, dist_HI);
+        print_dist(&spin, spin0, "EL", H, HB, dist_EL);
+        print_dist(&spin, spin0, "H", H, HB, dist_H);
+        print_dist(&spin, spin0, "HI", H, HB, dist_HI);
         //recuitN(&spin, H, HB, i, 0.001, 0.95, 5 * nx * ny, 1000, 10);
         //FILE* fichier = openfile_out(addspin);
         //print_spinners(&spin, fichier);
