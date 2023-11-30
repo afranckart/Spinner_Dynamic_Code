@@ -12,12 +12,10 @@ int main() {
 
     clock_t debut = clock();
 
-    //char add[] = "ppm_2x2_L0.025000_allmeta.txt";
-
     
     
-    for(int j = 1; j < 11; j++){
-        double i = j/10.;
+    for(int j = 20; j < 21; j++){
+        double i = j/100.;
 
         int num_threads = omp_get_num_threads();
 
@@ -38,20 +36,21 @@ int main() {
 
         std::string direc = "/mnt/c/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/";
         
-        std::string add = direc + "ppm_"+ std::to_string(nx) +"x"+ std::to_string(ny) + "_L0.025_T0"+std::to_string(i) + "_recuit1000.txt";
+        std::string add = direc + "recuit_of_T0/ppm_"+ std::to_string(nx) +"x"+ std::to_string(ny) + "_L0.025_T0"+std::to_string(i) + "_recuit1000.txt";
         char* addspin = new char[add.length() + 1];
         std::strcpy(addspin, add.c_str());
 
 
-        std::string add0 = direc + "EmaxMin/ppm_"+ std::to_string(nx) +"x"+ std::to_string(ny) + "_L0.025_Elow.txt";
+        std::string add0 = direc + "ppm_10x10";
         char* spin0 = new char[add0.length() + 1];
         std::strcpy(spin0, add0.c_str());
         
-        read_spinners(&spin, spin0);
-        recuitN(&spin, H, HB, i, 0.001, 0.95, 5 * nx * ny, 1000, 10);
-        FILE* fichier = openfile_out(addspin);
-        print_spinners(&spin, fichier);
-        fclose(fichier);
+        read_spinnersall(&spin, addspin, nx, ny, L);
+        print_dist(&spin, spin0, "EL", H, HB, dist_EL);
+        //recuitN(&spin, H, HB, i, 0.001, 0.95, 5 * nx * ny, 1000, 10);
+        //FILE* fichier = openfile_out(addspin);
+        //print_spinners(&spin, fichier);
+        //fclose(fichier);
         
 
         Finalisation_simu(&spin, H, HB);

@@ -298,18 +298,18 @@ void print_spinners(spinners_t* spin, FILE* fichier) {
 	for(int j = 0; j < spin->Ngrid; j++){
 		fprintf(fichier, "%d", spin->angles[0]);
 		for (int i = 1; i < N; i++) {
-			fprintf(fichier, "\t%d", (spin->angles[i] + 6) % 6);
+			fprintf(fichier, "\t%d", (spin->angles[i + N * j] + 6) % 6);
 		}
 		fprintf(fichier, "\n");
 	}
 }
 
-void print_matrice(double* matrice, const int sizex, const int sizey, FILE* fichier) {
+void print_matrice(double** matrice, const int sizex, const int sizey, FILE* fichier) {
 
 	for(int i = 0; i < sizey ; i++){
-		fprintf(fichier, "%f", matrice[i * sizex]);
+		fprintf(fichier, "%f", matrice[i][0]);
 		for(int j = 1; j < sizex ; j++){
-			fprintf(fichier, "\t%f", matrice[i * sizex + j]);
+			fprintf(fichier, "\t%f", matrice[i][j]);
 		}
 		if(i < sizey - 1){fprintf(fichier, "\n");}
 	}
@@ -441,35 +441,191 @@ void remove_equale(spinners_t* spin){
 	spin->Ngrid = sizeout;
 }
 
+void remove_equale_allmeta(spinners_t* spin, double* H, double* HB){
+	int N = spin->nx * spin->ny;
+	bool* unicity = (bool*)malloc(spin->Ngrid * sizeof(bool));
+	if (unicity == NULL) {
+		fprintf(stderr, "remove_equal_allmeta, unicity : Allocation de memoire echouee.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	for(int i = 0; i < spin->Ngrid; i++){unicity[i] = true;}
+	int sizeout = spin->Ngrid;
+	for(int i =0; i < spin->Ngrid; i++){
+		if(!metastable(spin, H, HB, N*i)){
+			unicity[i] = false;
+			sizeout--;
+		};
+	}
+	for(int i = 0; i < spin->Ngrid; i++){
+		if(unicity[i]){
+			for(int  j = i + 1; j < spin->Ngrid; j++){ // accelerable sur GPU
+				if(isequale(spin, N, i * N,  j * N) && unicity[i]){
+					unicity[i] = false;
+					sizeout--;
+				}
+			}
+		}
+	}
+
+	int* out = (int*)malloc(sizeout * N * sizeof(int));
+	if (out == NULL) {
+		fprintf(stderr, "remove_equal_allmeta, out : Allocation de memoire echouee.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	int k = 0;
+	for(int i = 0; i < spin->Ngrid; i++){
+		if(unicity[i]){
+			for(int j = 0; j < N ; j++){
+				out[N * k + j] = spin->angles[N * i + j];
+			}
+			k++;
+		}
+	}
+
+	spin->angles = (int*)realloc(spin->angles, sizeout * N * sizeof(int));
+	if (spin->angles == NULL) {
+        fprintf(stderr, "remove_equal_allmeta, new_angles :Réallocation de mémoire échouée.\n");
+        exit(EXIT_FAILURE);
+    }
+	
+	memcpy(spin->angles, out, sizeout * N * sizeof(int));
+	free(out);
+	free(unicity);
+	printf("Ngird = %d, after remove_equale_allmeta %d\n", spin->Ngrid, sizeout );
+	spin->Ngrid = sizeout;
+}
+
 /********************************************************************************/
 /*                                                                              */
 /*                                distance                                      */
 /*                                                                              */
 /********************************************************************************/
 
+double dist_EG(spinners_t* spin, int i, int j, int N, double* H, double * HB){
+	return abs(E_total(spin, H, HB, N * i) - E_total(spin, H, HB, N * j)) / (double)N;
+}
 
-void print_dist(spinners_t* spin, char* add, char* distchar, double (*dist)(spinners_t*, int i, int j, int N)){
+double dist_EL(spinners_t* spin, int i, int j, int N, double* H, double * HB){
+	double d = 0.;
+	for(int k = 0; k < N; k++){ d += pow( E_local(spin, k, H, HB, i * N) - E_local(spin, k, H, HB, j * N) , 2);}
+	return sqrt(d) / (double)N;
+}
+
+double dist_H(spinners_t* spin, int i, int j, int N, double* H, double * HB){
+	double d = 0.;
+	for(int k = 0; k < N; k++){ d += pow( spin->angles[i * N + k] - spin->angles[j * N + k] , 2);}
+	return sqrt(d) / (double)N;
+}
+
+double dist_HI(spinners_t* spin, int i, int j, int N, double* H, double * HB){
+	double d = 0.;
+	for(int k = 0; k < N; k++){
+		double dd = 0;
+		int* voisins = neighbour(spin, k);
+		for(int l = 0; l < SIZE_NEIGHBOUR; l++){
+			if(voisins[l] != -1){dd += pow( spin->angles[i * N + k] - spin->angles[j * N + voisins[l]] , 2);}
+		}
+		d += dd;
+		free(voisins);
+	}
+	return sqrt(d) / (double)N;
+}
+
+void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *HB, double (*dist)(spinners_t* spin, int i, int j, int N, double* H, double * HB)){
 	char path[STRING_MAX];
 	strcpy(path, add);
 	strcat(path, "_L"); 
 	snprintf(path + strlen(path), sizeof(path) - strlen(path), "%f", spin->L); 
-	strcat(path, "_dist.txt"); 
+	strcat(path, "_dist"); 
 	strcat(path, distchar); 
 	strcat(path, ".txt"); 
 
 	FILE* fichier = openfile_out(path);
 
 	const int N = spin->nx * spin->ny;
-	double* matrice = (double*)malloc( spin->Ngrid * spin->Ngrid * sizeof(double)); 
-	for(int i = 0; i < spin->Ngrid ; i ++){
-		for(int j = i; j < spin->Ngrid ; j ++){
-			matrice[i * N + j] = dist(spin, i, j, N);
-			matrice[j * N + i] = matrice[i * N + j];
+	double** matrice = (double**)malloc( spin->Ngrid * sizeof(double*));
+	if (matrice == NULL) {
+		fprintf(stderr, "print_matrice, matrice : Allocation de memoire echouee.\n");
+		exit(EXIT_FAILURE);
+	}
+	for(int i = 0; i < spin->Ngrid; i++){
+		matrice[i] = (double*)malloc( spin->Ngrid * sizeof(double));
+		if (matrice[i] == NULL) {
+			fprintf(stderr, "print_matrice, matrice : Allocation de memoire echouee.\n");
+			exit(EXIT_FAILURE);
 		}
 	}
-	print_matrice(matrice, spin->Ngrid, spin->Ngrid, fichier);
+
+	for(int i = 0; i < spin->Ngrid ; i ++){
+		for(int j = i; j < spin->Ngrid ; j ++){
+			matrice[i][j] = dist(spin, i, j, N, H, HB);
+			matrice[j][i] = matrice[i][j];
+		}
+	}
+	tri(matrice, spin->Ngrid);
+	print_matrice(matrice, spin->Ngrid, spin->Ngrid, fichier);//modifier pour avoire une matrice de pointeurs
 	fclose(fichier);
+	for(int i = 0; i < spin->Ngrid; i++){free(matrice[i]);}
 	free(matrice);
+}
+
+/********************************************************************************/
+/*                                                                              */
+/*                                clustering                                    */
+/*                                                                              */
+/********************************************************************************/
+
+void tri(double** matrice, int N){
+	if (N < 2) {
+		fprintf(stderr, "tri, matriceDIST : Allocation de memoire echoueeinvalide size of matrice");
+		exit(EXIT_FAILURE);
+	}
+	double* matriceDIST = (double*)malloc(N * N * sizeof(double));
+	if (matriceDIST == NULL) {
+		fprintf(stderr, "tri, matriceDIST : Allocation de memoire echouee.\n");
+		exit(EXIT_FAILURE);
+	}
+	/*on crer une matrice de la distance dij entre les lignes de la matrice initial*/
+	for(int i = 0; i < N; i++){ // accelerate GPU
+		for(int j = i; j < N; j++){
+			double d = 0;
+			for(int k = 0; k < N; k++){d += abs(matrice[i][k] - matrice[j][k]);}
+			matriceDIST[i * N + j] = d;
+			matriceDIST[j * N + i] = d;
+		}
+	}
+
+	int* posline = (int*)malloc(N * sizeof(int));
+	if (posline == NULL) {
+		fprintf(stderr, "tri, posline : Allocation de memoire echouee.\n");
+		exit(EXIT_FAILURE);
+	}
+	for(int i = 0; i < N; i++){posline[i] = i;}
+	
+	for (int i = 0; i < N - 1; i++) {
+        double d = matriceDIST[i * N + i + 1];
+        for (int j = i + 2; j < N; j++) {
+            if (matriceDIST[posline[j] * N + posline[i]] <= d) {
+                int temp = posline[i + 1];
+                posline[i + 1] = posline[j];
+                posline[j] = temp;
+				d = matriceDIST[posline[j] * N + posline[i]];
+            }
+        }
+    }
+
+	for(int i = 0; i < N; i++){
+		for(int j = 0; j < N; j++){
+			double change = matrice[i][j];
+			matrice[i][j] = matrice[posline[i]][posline[j]];
+			matrice[posline[i]][posline[j]] = change;
+		}
+	}
+
+	free(posline);
+	free(matriceDIST);
 }
 
 /********************************************************************************/
@@ -877,5 +1033,5 @@ void recuitN(spinners_t* spin, double* H, double* HB, double T0, double TF, doub
 		}
 	}
 
-	remove_equale(spin);
+	remove_equale_allmeta(spin, H, HB);
 }

@@ -32,6 +32,7 @@ typedef struct spinners {
 
 } spinners_t;
 
+
 /********************************************************************************/
 /*                                                                              */
 /*                            comput Energy dipole fct                          */
@@ -277,9 +278,9 @@ void print_spinners(spinners_t* spin, FILE* fichier);
 
 
 /**
- * @brief print a matrice sizex * sizey
+ * @brief print a matrice sizex * sizey, a arrayr of pointeurs
  *
- * @param  matrice [IN] array to print 
+ * @param  matrice [IN] array of pointeur of line of the matrice
  *
  * @param  spin [IN]  spin grid
  * 
@@ -289,7 +290,7 @@ void print_spinners(spinners_t* spin, FILE* fichier);
  * 
  * @param  fichier [IN]  file where write
  */
-void print_matrice(double* matrice, const int sizex, const int sizey, FILE* fichier);
+void print_matrice(double** matrice, const int sizex, const int sizey, FILE* fichier);
 
 
 /**
@@ -381,13 +382,40 @@ bool isequale(spinners_t* A, const int size, int offset1, int offset2);
  */
 void remove_equale(spinners_t* spin);
 
+/**
+ * @brief remove all duplicate and no metastable grid of spin->angles
+ *
+ * @param  spin [INOUT]  spinner_t with Ngrid
+ * 
+ * @param  H [IN]  interaction tensor dipole dipole
+ *
+ * @param  HB [IN]  interaction tensor dipole B-field
+ */
+void remove_equale_allmeta(spinners_t* spin, double* H, double* HB);
+
 /********************************************************************************/
 /*                                                                              */
 /*                                distance                                      */
 /*                                                                              */
 /********************************************************************************/
 
-void print_dist(spinners_t* spin, char* add, char* distchar, double (*dist)(spinners_t*, int i, int j, int N));
+double dist_EG(spinners_t* spin, int i, int j, int N, double* H, double * HB);
+
+double dist_EL(spinners_t* spin, int i, int j, int N, double* H, double * HB);
+
+double dist_H(spinners_t* spin, int i, int j, int N, double* H, double * HB);
+
+double dist_HI(spinners_t* spin, int i, int j, int N, double* H, double * HB);
+
+void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *HB, double (*dist)(spinners_t* spin, int i, int j, int N, double* H, double * HB));
+
+/********************************************************************************/
+/*                                                                              */
+/*                                clustering                                    */
+/*                                                                              */
+/********************************************************************************/
+
+void tri(double** matrice, int N);
 
 /********************************************************************************/
 /*                                                                              */
