@@ -13,7 +13,7 @@ def plot_from_txt_and_save_png(path):
     plt.colorbar(label='dist')
     plt.xlabel('states')
     plt.ylabel('states')
-    plt.title('dist HI')
+    plt.title('dist EL')
 
     # Sauvegarder le graphique en tant qu'image PNG
     plt.savefig(path + '.png', format='png', dpi=450)
@@ -22,17 +22,17 @@ def plot_from_txt_and_save_png(path):
     plt.close()
 
 # Chemin vers le dossier contenant les fichiers texte
-dirc = "C:/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/"
+dirc = "C:/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/recuit_of_T0/distEL/"
 
 for i in range(10,100,1):
-    file_path = dirc + 'ppm_10x10_T00.' + str(i) + '0000_L0.025000_distHI'
+    file_path = dirc + 'ppm_10x10_T00.' + str(i) + '0000_L0.025000_distEL'
     plot_from_txt_and_save_png(file_path)
 
 for i in range(1,10,1):
-    file_path = dirc + 'ppm_10x10_T00.0' + str(i) + '0000_L0.025000_distHI'
+    file_path = dirc + 'ppm_10x10_T00.0' + str(i) + '0000_L0.025000_distEL'
     plot_from_txt_and_save_png(file_path)
 
-file_path = dirc + 'ppm_10x10_T01.000000_L0.025000_distHI'
+file_path = dirc + 'ppm_10x10_T01.000000_L0.025000_distEL'
 plot_from_txt_and_save_png(file_path)
     
  
