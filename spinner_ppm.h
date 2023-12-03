@@ -393,8 +393,32 @@ void remove_equale(spinners_t* spin);
  */
 void remove_equale_allmeta(spinners_t* spin, double* H, double* HB);
 
+
+/**
+ * @brief print the energy of all grid of a spinner_t
+ *
+ * @param  spin [IN]  spin grid
+ *
+ * @param  add [IN]  output file path
+ * 
+ * @param  H [IN]  interaction tensor dipole dipole
+ *
+ * @param  HB [IN]  interaction tensor dipole B-field
+ */
 void print_E(spinners_t* spin, char* add, double* H, double* HB);
 
+
+/**
+ * @brief compute the energy and compute the histograme of all grid of a spinner_t
+ *
+ * @param  spin [IN]  spin grid
+ *
+ * @param  add [IN]  output file path
+ * 
+ * @param  H [IN]  interaction tensor dipole dipole
+ *
+ * @param  HB [IN]  interaction tensor dipole B-field
+ */
 void print_E_Histo(spinners_t* spin, char* add, double* H, double* HB);
 
 /********************************************************************************/
@@ -403,14 +427,107 @@ void print_E_Histo(spinners_t* spin, char* add, double* H, double* HB);
 /*                                                                              */
 /********************************************************************************/
 
+/**
+ * @brief compute the global energy difference :  |E_i-E_j|/N
+ *
+ * @param  spin [IN]  spin grid
+ *
+ * @param  i [IN]  indice of the i-grid of spin->angles
+ * 
+ * @param  j [IN]  indice of the j-grid of spin->angles
+ * 
+ * @param  N [IN]  size of a grid, nx * ny
+ * 
+ * @param  distchar [IN]  additional char* that will be insert in add
+ * 
+ * @param  H [IN]  interaction tensor dipole dipole
+ *
+ * @param  HB [IN]  interaction tensor dipole B-field
+ * 
+ * @return |E_i-E_j|/N
+ */
 double dist_EG(spinners_t* spin, int i, int j, int N, double* H, double * HB);
 
+/**
+ * @brief compute the local energy difference : \sqrt{\sum_k (E_ik-E_jk)^2}/N
+ *
+ * @param  spin [IN]  spin grid
+ *
+ * @param  i [IN]  indice of the i-grid of spin->angles
+ * 
+ * @param  j [IN]  indice of the j-grid of spin->angles
+ * 
+ * @param  N [IN]  size of a grid, nx * ny
+ * 
+ * @param  distchar [IN]  additional char* that will be insert in add
+ * 
+ * @param  H [IN]  interaction tensor dipole dipole
+ *
+ * @param  HB [IN]  interaction tensor dipole B-field
+ * 
+ * @return \sqrt{\sum_k (E_ik-E_jk)^2}/N
+ */
 double dist_EL(spinners_t* spin, int i, int j, int N, double* H, double * HB);
 
+/**
+ * @brief compute the Hamming distance between two states : \sqrt{\sum_k (theta_ik-theta_jk)^2}/N
+ *
+ * @param  spin [IN]  spin grid
+ *
+ * @param  i [IN]  indice of the i-grid of spin->angles
+ * 
+ * @param  j [IN]  indice of the j-grid of spin->angles
+ * 
+ * @param  N [IN]  size of a grid, nx * ny
+ * 
+ * @param  distchar [IN]  additional char* that will be insert in add
+ * 
+ * @param  H [IN]  interaction tensor dipole dipole
+ *
+ * @param  HB [IN]  interaction tensor dipole B-field
+ * 
+ * @return \sqrt{\sum_k (theta_ik-theta_jk)^2}/N
+ */
 double dist_H(spinners_t* spin, int i, int j, int N, double* H, double * HB);
 
+
+/**
+ * @brief compute a rotation invariant Hamming distance between tow stats : \sqrt{\sum_k \sum_neigbour (theta_ik - theta_ineigbourg[k]-theta_jk + theta_jneigbourg[k])^2}/N
+ *
+ * @param  spin [IN]  spin grid
+ *
+ * @param  i [IN]  indice of the i-grid of spin->angles
+ * 
+ * @param  j [IN]  indice of the j-grid of spin->angles
+ * 
+ * @param  N [IN]  size of a grid, nx * ny
+ * 
+ * @param  distchar [IN]  additional char* that will be insert in add
+ * 
+ * @param  H [IN]  interaction tensor dipole dipole
+ *
+ * @param  HB [IN]  interaction tensor dipole B-field
+ * 
+ * @return \sqrt{\sum_k \sum_neigbour (theta_ik - theta_ineigbourg[k]-theta_jk + theta_jneigbourg[k])^2}/N
+ */
 double dist_HI(spinners_t* spin, int i, int j, int N, double* H, double * HB);
 
+
+/**
+ * @brief print the matrice of distance bteween two grid of all grid of a spinner_t. The matrice is "trier"
+ *
+ * @param  spin [IN]  spin grid
+ *
+ * @param  add [IN]  output file path
+ * 
+ * @param  distchar [IN]  additional char* that will be insert in add
+ * 
+ * @param  H [IN]  interaction tensor dipole dipole
+ *
+ * @param  HB [IN]  interaction tensor dipole B-field
+ * 
+ * @param dist [in] a fonction that performe the distance betxeen two state
+ */
 void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *HB, double (*dist)(spinners_t* spin, int i, int j, int N, double* H, double * HB));
 
 /********************************************************************************/
@@ -419,8 +536,26 @@ void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *H
 /*                                                                              */
 /********************************************************************************/
 
+/**
+ * @brief compute the distacne between two line of the distance matrice d = sum_l | matrice_il - matrice_jl|
+ *
+ * @param  B [IN]  a pointeur of the a line of the matrice
+ * 
+ * @param  A [IN]  a pointeur of the a line of the matrice
+ *
+ * @param  N [IN]  the size of a line of the matrice 
+ * 
+ * @return d = sum_l | matrice_il - matrice_jl|
+ */
 double distline(double* A, double* B, int N);
 
+/**
+ * @brief "trie" the distance matrice, by hamming distance
+ *
+ * @param  matrice [INOUT]  the matrice of distance between two states
+ *
+ * @param  N [IN]  the size of a line and a column of the matrice
+ */
 void tri(double** matrice, int N);
 
 /********************************************************************************/
@@ -498,3 +633,9 @@ void print_neighbours_state_all_for(spinners_t* spin, int distancemax, int dista
 void print_neighbours_state_all(spinners_t* spin, char* add, int distance);
 
 void recuitN(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int Nsimu, int p);
+
+/********************************************************************************/
+/*                                                                              */
+/*                                avalange                                      */
+/*                                                                              */
+/********************************************************************************/
