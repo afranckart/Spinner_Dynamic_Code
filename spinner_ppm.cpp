@@ -512,6 +512,15 @@ void print_E(spinners_t* spin, char* add, double* H, double* HB){
 	fclose(fichier);
 }
 
+void print_E_Histo(spinners_t* spin, char* add, double* H, double* HB){
+	FILE* fichier = openfile_out(add);
+	int N = spin->nx * spin->ny;
+	std::map<double, int> histogram;
+	for(int i = 0; i < spin->Ngrid; i++){ histogram[E_total(spin, H, HB, N * i)]++; }
+	for (const auto& entry : histogram){ fprintf(fichier, "%f %d\n", entry.first, entry.second); }
+	fclose(fichier);
+}
+
 /********************************************************************************/
 /*                                                                              */
 /*                                distance                                      */

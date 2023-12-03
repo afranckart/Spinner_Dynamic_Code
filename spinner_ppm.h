@@ -395,6 +395,8 @@ void remove_equale_allmeta(spinners_t* spin, double* H, double* HB);
 
 void print_E(spinners_t* spin, char* add, double* H, double* HB);
 
+void print_E_Histo(spinners_t* spin, char* add, double* H, double* HB);
+
 /********************************************************************************/
 /*                                                                              */
 /*                                distance                                      */
