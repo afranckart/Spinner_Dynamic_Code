@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-//#include <map>
+#include <map>
 #include <vector>
 #include <omp.h>
 
@@ -497,6 +497,21 @@ void remove_equale_allmeta(spinners_t* spin, double* H, double* HB){
 	spin->Ngrid = sizeout;
 }
 
+void print_E(spinners_t* spin, char* add, double* H, double* HB){
+	FILE* fichier = openfile_out(add);
+	int N = spin->nx * spin->ny;
+	double* E = (double*)malloc(spin->Ngrid * sizeof(double));
+	if (E == NULL) {
+        fprintf(stderr, "print_E, E : allocation de mémoire échouée.\n");
+        exit(EXIT_FAILURE);
+    }
+	for(int i = 0; i < spin->Ngrid; i++){ E[i] = E_total(spin, H, HB, N * i); }
+	for(int i = 0; i < spin->Ngrid - 1; i++){ fprintf(fichier, "%f\n", E[i]); }
+	fprintf(fichier, "%f", E[spin->Ngrid - 1]);
+	free(E);
+	fclose(fichier);
+}
+
 /********************************************************************************/
 /*                                                                              */
 /*                                distance                                      */
@@ -585,7 +600,7 @@ double distline(double* A, double* B, int N){
 }
 
 void tri(double** matrice, int N){
-	
+
 	int* posline = (int*)malloc(N * sizeof(int));
 	if (posline == NULL) {
 		fprintf(stderr, "tri, posline : Allocation de memoire echouee.\n");
