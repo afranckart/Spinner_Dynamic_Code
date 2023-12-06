@@ -512,6 +512,25 @@ void print_E(spinners_t* spin, char* add, double* H, double* HB){
 	fclose(fichier);
 }
 
+void plot_E_mean(spinners_t* spin, double* H, double* HB, double track){
+	int N = spin->nx * spin->ny;
+	double* E = (double*)malloc(spin->Ngrid * sizeof(double));
+	if (E == NULL) {
+        fprintf(stderr, "print_E, E : allocation de mémoire échouée.\n");
+        exit(EXIT_FAILURE);
+    }
+	for(int i = 0; i < spin->Ngrid; i++){ E[i] = E_total(spin, H, HB, N * i); }
+	double moyenne = 0.0;
+    for (int i = 0; i < spin->Ngrid; i++) { moyenne += E[i]; }
+    moyenne /= spin->Ngrid;
+    double ecart_type = 0.0;
+    for (int i = 0; i < spin->Ngrid; i++) { ecart_type += pow(E[i] - moyenne, 2);}
+    ecart_type = sqrt(ecart_type / spin->Ngrid);
+	printf("%f %f %f\n", track , moyenne, ecart_type);
+	free(E);
+}
+
+
 void print_E_Histo(spinners_t* spin, char* add, double* H, double* HB){
 	FILE* fichier = openfile_out(add);
 	int N = spin->nx * spin->ny;

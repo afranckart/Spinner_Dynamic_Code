@@ -407,6 +407,8 @@ void remove_equale_allmeta(spinners_t* spin, double* H, double* HB);
  */
 void print_E(spinners_t* spin, char* add, double* H, double* HB);
 
+void plot_E_mean(spinners_t* spin, double* H, double* HB, double track);
+
 
 /**
  * @brief compute the energy and compute the histograme of all grid of a spinner_t
