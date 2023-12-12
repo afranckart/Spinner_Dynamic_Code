@@ -32,6 +32,28 @@ typedef struct spinners {
 
 } spinners_t;
 
+typedef struct matrice_line{
+	double* col;
+	int pos;
+}matrice_line_t;
+
+typedef struct matrice{
+	int N;
+	matrice_line_t* line;
+}matrice_t;
+
+typedef struct cluster{
+	int size;
+	int* pos;
+	bool notmerged;
+}cluster_t;
+
+typedef struct tree{
+	int N;
+	cluster_t* cluster;
+}tree_t;
+
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -249,6 +271,15 @@ bool metastable(spinners_t* spin, double* H, double* HB, int offset);
 
 
 /**
+ * @brief interverted tow int
+ *
+ * @param  A [INOUT]   int that will be interverted 
+ * 
+ * @param  B [INOUT]   int that will be interverted 
+ */
+void change(int* A, int* B);
+
+/**
  * @brief open a file in w write and erase mode
  *
  * @param  add [IN]  pathfile
@@ -291,6 +322,16 @@ void print_spinners(spinners_t* spin, FILE* fichier);
  * @param  fichier [IN]  file where write
  */
 void print_matrice(double** matrice, const int sizex, const int sizey, FILE* fichier);
+
+
+/**
+ * @brief print a matrice_t
+ *
+ * @param  matrice [IN] ùatrice_t that will be printed
+ * 
+ * @param  fichier [IN]  file where write
+ */
+void print_matrice(matrice_t* matrice, FILE* fichier);
 
 
 /**
@@ -407,6 +448,18 @@ void remove_equale_allmeta(spinners_t* spin, double* H, double* HB);
  */
 void print_E(spinners_t* spin, char* add, double* H, double* HB);
 
+
+/**
+ * @brief plot the mean energy of all grid of a spinner_t and the standard deviation
+ *
+ * @param  spin [IN]  spin grid
+ * 
+ * @param  H [IN]  interaction tensor dipole dipole
+ *
+ * @param  HB [IN]  interaction tensor dipole B-field
+ * 
+ * @param  track [IN]  double that will plot with the mean energy, that can be use like an abscisse
+ */
 void plot_E_mean(spinners_t* spin, double* H, double* HB, double track);
 
 
@@ -516,7 +569,7 @@ double dist_HI(spinners_t* spin, int i, int j, int N, double* H, double * HB);
 
 
 /**
- * @brief print the matrice of distance bteween two grid of all grid of a spinner_t. The matrice is "trier"
+ * @brief print the matrice of distance bteween two grid of all grid of a spinner_t. The matrice is "trier" and the ultrametric distance
  *
  * @param  spin [IN]  spin grid
  *
@@ -554,11 +607,30 @@ double distline(double* A, double* B, int N);
 /**
  * @brief "trie" the distance matrice, by hamming distance
  *
- * @param  matrice [INOUT]  the matrice of distance between two states
- *
- * @param  N [IN]  the size of a line and a column of the matrice
+ * @param  matrice [INOUT]  the matrice_t of distance between two states
  */
-void tri(double** matrice, int N);
+void tri(matrice_t* matrice);
+
+/**
+ * @brief performe the ultrametric distance with an average link clustering
+ *
+ * @param  tree [IN]  inital partition tree_t of cluster of size 1
+ * 
+ * @param  matrice_dist [IN]  the matrice_t of distance between two states
+ * 
+ * @param  matrice_ultra [OUT]  the matrice_t of umtrametric distance between two states
+ */
+void cluster_fusion(tree_t* tree, matrice_t* matrice_dist, matrice_t* matrice_ultra) ;
+
+
+/**
+ * @brief performe the ultrametric distance matrice
+ * 
+ * @param  matrice_dist [IN]  the matrice_t of distance between two states
+ * 
+ * @param  matrice_ultra [OUT]  the matrice_t of umtrametric distance between two states
+ */
+void matrice_ultra(matrice_t* matrice_dist,  matrice_t* matrice_ultra);
 
 /********************************************************************************/
 /*                                                                              */
@@ -634,6 +706,28 @@ void print_neighbours_state_all_for(spinners_t* spin, int distancemax, int dista
 
 void print_neighbours_state_all(spinners_t* spin, char* add, int distance);
 
+
+/**
+ * @brief compute Nsimu annealing of a initial sate
+ *
+ * @param  spin [INOUT]  spin grid initial and all final grid
+ *
+ * @param  H [IN]  interaction tensor dipole dipole
+ *
+ * @param  HB [IN]  interaction tensor dipole B-field
+ *
+ * @param  TO [IN]  initial temparure
+ * 
+ * @param  TF [IN]  initial temparure
+ * 
+ * @param  lamnbda [IN]  paramter T *= lambda
+ * 
+ * @param  Niter [IN]  number of change at a fixed temperature
+ * 
+ * @param Nismu [IN] number of annelaing performed
+ * 
+ * @param p [IN] number of threats for OpenMP
+ */
 void recuitN(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int Nsimu, int p);
 
 /********************************************************************************/

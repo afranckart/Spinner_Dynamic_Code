@@ -14,8 +14,8 @@ int main() {
 
     
     //#pragma omp parallel for num_threads(5)
-    for(int j = 1; j < 101; j++){
-        double i = j/100.;
+    for(int j = 200; j < 201; j++){
+        double i = j/1000.;
 
         int num_threads = omp_get_num_threads();
 
@@ -34,23 +34,24 @@ int main() {
 
         srand((unsigned int)time(NULL));
 
-        std::string direc = "/mnt/c/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/recuit_of_t0/";
+        std::string direc = "/mnt/c/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/recuit_of_t0/run4/";
         
         std::string add = direc + "ppm_"+ std::to_string(nx) +"x"+ std::to_string(ny) + "_L0.025_T0"+std::to_string(i) + "_recuit1000.txt";
         //std::string add = direc + "ppm_4x4_L0.025000_allmeta.txt";
         char* addspin = new char[add.length() + 1];
         std::strcpy(addspin, add.c_str());
 
+        std::string direc2 = "/mnt/c/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/";
 
-        std::string add0 = direc + "ppm_4x4_L0.025000_allmeta_E_Histo.txt";
+        std::string add0 = direc2 + "ppm_"+ std::to_string(nx) +"x"+ std::to_string(ny);
         char* spin0 = new char[add0.length() + 1];
         std::strcpy(spin0, add0.c_str());
         
 
         read_spinnersall(&spin, addspin, nx, ny, L);
-        plot_E_mean(&spin, H, HB, i);
+        //plot_E_mean(&spin, H, HB, i);
         //print_E_Histo(&spin, spin0, H, HB);
-        //print_dist(&spin, spin0, "EG_allmeta", H, HB, dist_EG);
+        print_dist(&spin, spin0, "EG_allmeta", H, HB, dist_EG);
         //print_dist(&spin, spin0, "EL_allmeta", H, HB, dist_EL);
         //print_dist(&spin, spin0, "H_allmeta", H, HB, dist_H);
         //print_dist(&spin, spin0, "HI_allmeta", H, HB, dist_HI);

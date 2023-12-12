@@ -8,6 +8,7 @@
 #include <map>
 #include <vector>
 #include <omp.h>
+#include <float.h>
 
 
 /********************************************************************************/
@@ -269,6 +270,12 @@ bool metastable(spinners_t* spin, double* H, double* HB, int offset) {
 /*                                                                              */
 /********************************************************************************/
 
+void change(int* A, int* B){
+	int c = *A;
+	*A = *B;
+	*B = c;
+}
+
 FILE* openfile_out(char* add) {
 
 	 FILE* fichier = fopen(add, "w");
@@ -312,6 +319,18 @@ void print_matrice(double** matrice, const int sizex, const int sizey, FILE* fic
 			fprintf(fichier, "\t%f", matrice[i][j]);
 		}
 		if(i < sizey - 1){fprintf(fichier, "\n");}
+	}
+}
+
+
+void print_matrice(matrice_t* matrice, FILE* fichier) {
+
+	for(int i = 0; i < matrice->N ; i++){
+		fprintf(fichier, "%f", matrice->line[i].col[0]);
+		for(int j = 1; j < matrice->N ; j++){
+			fprintf(fichier, "\t%f", matrice->line[i].col[j]);
+		}
+		if(i < matrice->N - 1){fprintf(fichier, "\n");}
 	}
 }
 
@@ -584,35 +603,58 @@ void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *H
 	snprintf(path + strlen(path), sizeof(path) - strlen(path), "%f", spin->L);
 	strcat(path, "_dist"); 
 	strcat(path, distchar); 
-	strcat(path, ".txt"); 
+	strcat(path, ".txt");
+
+
+	char path2[STRING_MAX];
+	strcpy(path2, add);
+	strcat(path2, "_L"); 
+	snprintf(path2 + strlen(path2), sizeof(path2) - strlen(path2), "%f", spin->L);
+	strcat(path2, "_dist"); 
+	strcat(path2, distchar); 
+	strcat(path2, "_ultra.txt");
 
 	FILE* fichier = openfile_out(path);
+	FILE* fichier_ultra = openfile_out(path2);
 
-	const int N = spin->nx * spin->ny;
-	double** matrice = (double**)malloc( spin->Ngrid * sizeof(double*));
-	if (matrice == NULL) {
-		fprintf(stderr, "print_matrice, matrice : Allocation de memoire echouee.\n");
+	matrice_t matrice;
+	matrice_t ultra;
+	matrice.N = spin->Ngrid;
+	ultra.N = spin->Ngrid;
+	matrice.line = (matrice_line_t*)malloc( matrice.N * sizeof(matrice_line_t));
+	ultra.line = (matrice_line_t*)malloc( ultra.N * sizeof(matrice_line_t));
+	if (matrice.line == NULL || ultra.line == NULL) {
+		fprintf(stderr, "print_matrice, matrice.line and ultra.line : Allocation de memoire echouee.\n");
 		exit(EXIT_FAILURE);
 	}
-	for(int i = 0; i < spin->Ngrid; i++){
-		matrice[i] = (double*)malloc( spin->Ngrid * sizeof(double));
-		if (matrice[i] == NULL) {
-			fprintf(stderr, "print_matrice, matrice : Allocation de memoire echouee.\n");
+	for(int i = 0; i < matrice.N; i++){
+		matrice.line[i].col = (double*)malloc( matrice.N * sizeof(double));
+		ultra.line[i].col = (double*)malloc( ultra.N * sizeof(double));
+		if (matrice.line[i].col == NULL || ultra.line[i].col == NULL) {
+			fprintf(stderr, "print_matrice, matrice.line[%d].col and ultra.line[%d].col : Allocation de memoire echouee.\n", i, i);
 			exit(EXIT_FAILURE);
 		}
+		matrice.line[i].pos = i;
+		ultra.line[i].pos = i;
 	}
 
+	const int N = spin->nx * spin->ny;
 	for(int i = 0; i < spin->Ngrid ; i ++){
 		for(int j = i; j < spin->Ngrid ; j ++){
-			matrice[i][j] = dist(spin, i, j, N, H, HB);
-			matrice[j][i] = matrice[i][j];
+			matrice.line[i].col[j] = dist(spin, i, j, N, H, HB);
+			matrice.line[j].col[i] = matrice.line[i].col[j];
 		}
 	}
-	tri(matrice, spin->Ngrid);
-	print_matrice(matrice, spin->Ngrid, spin->Ngrid, fichier);//modifier pour avoire une matrice de pointeurs
+	tri(&matrice);
+	matrice_ultra(&matrice, &ultra);
+	print_matrice(&matrice, fichier);
+	print_matrice(&ultra, fichier_ultra);
 	fclose(fichier);
-	for(int i = 0; i < spin->Ngrid; i++){free(matrice[i]);}
-	free(matrice);
+	fclose(fichier_ultra);
+	for(int i = 0; i < matrice.N; i++){free(matrice.line[i].col);}
+	free(matrice.line);
+	for(int i = 0; i < matrice.N; i++){free(ultra.line[i].col);}
+	free(ultra.line);
 }
 
 /********************************************************************************/
@@ -627,45 +669,131 @@ double distline(double* A, double* B, int N){
 	return d;
 }
 
-void tri(double** matrice, int N){
-
-	int* posline = (int*)malloc(N * sizeof(int));
-	if (posline == NULL) {
-		fprintf(stderr, "tri, posline : Allocation de memoire echouee.\n");
-		exit(EXIT_FAILURE);
-	}
-	for(int i = 0; i < N; i++){posline[i] = i;}
+void tri(matrice_t* matrice){
 	
-	for (int i = 0; i < N - 1; i++) {
-        double dmin = distline(matrice[i], matrice[i + 1], N);
-        for (int j = i + 2; j < N; j++) {
-			double d = distline(matrice[i], matrice[j], N);
+	for (int i = 0; i < matrice->N - 1; i++) {
+        double dmin = distline(matrice->line[i].col, matrice->line[i + 1].col, matrice->N);
+        for (int j = i + 2; j < matrice->N; j++) {
+			double d = distline(matrice->line[i].col, matrice->line[j].col, matrice->N);
             if (d < dmin) {
-				double* change = matrice[j];
-				matrice[j] = matrice[i + 1];
-				matrice[i + 1] = change;
-				
-				int temp = posline[j];
-				posline[j] = posline[i + 1];
-				posline[i + 1] = temp;
-
+				double* change = matrice->line[j].col;
+				matrice->line[j].col = matrice->line[i + 1].col;
+				matrice->line[i + 1].col = change;
 				dmin = d;
+				int temp = matrice->line[i + 1].pos;
+				matrice->line[i + 1].pos = matrice->line[j].pos;
+				matrice->line[j].pos = temp;
             }
         }
     }
-
-	for(int i = 0; i < N; i++){
-		double* change = (double*)malloc(N * sizeof(double));
+	
+	for(int i = 0; i < matrice->N; i++){
+		double* change = (double*)malloc(matrice->N * sizeof(double));
 		if (change == NULL) {
 			fprintf(stderr, "tri, change : Allocation de memoire echouee.\n");
 			exit(EXIT_FAILURE);
 		}
-		for(int j = 0; j < N; j++){change[j] = matrice[i][j];}
-		for(int j = 0; j < N; j++){matrice[i][j] = change[posline[j]];}
+		
+		memcpy(change, matrice->line[i].col, matrice->N * sizeof(double));
+		for(int j = 0; j < matrice->N; j++){matrice->line[i].col[j] = change[matrice->line[j].pos];}
 		free(change);
 	}
-    free(posline);
 }
+
+
+void cluster_fusion(tree_t* tree, matrice_t* matrice_dist, matrice_t* matrice_ultra) {
+	
+	int Ncluster = tree->N;
+    // Boucle pour fusionner les clusters jusqu'à ce qu'il ne reste qu'un seul cluster
+    while (Ncluster > 1) {
+        // Recherche des clusters les plus proches non encore fusionnés
+        int minI = -1, minJ = -1;
+        double minSimilarite = DBL_MAX;
+		double similarity = 0.;
+
+        for (int i = 0; i < tree->N; i++) {
+            if (tree->cluster[i].notmerged) {
+                for (int j = i + 1; j < tree->N; j++) {
+                    if (tree->cluster[j].notmerged) {
+                        similarity = 0.;
+						for(int k = 0; k < tree->cluster[i].size;  k++){
+							for(int l = 0; l < tree->cluster[j].size;  l++){
+								
+								similarity += matrice_dist->line[tree->cluster[i].pos[k]].col[tree->cluster[j].pos[l]];
+							}
+						}
+						similarity /= tree->cluster[i].size * tree->cluster[j].size; 
+                        if ( similarity < minSimilarite) {
+                            minSimilarite = similarity;
+                            minI = i;
+                            minJ = j;
+                        }
+                    }
+                }
+            }
+        }
+
+		for (int k = 0; k < tree->cluster[minI].size; k++) {
+            for (int l = 0; l < tree->cluster[minJ].size; l++) {
+				matrice_ultra->line[tree->cluster[minI].pos[k]].col[tree->cluster[minJ].pos[l]] = similarity;
+				matrice_ultra->line[tree->cluster[minJ].pos[l]].col[tree->cluster[minI].pos[k]] = similarity;
+        	}
+        }
+
+        // Fusion des clusters minI et minJ
+        int newClusterSize = tree->cluster[minI].size + tree->cluster[minJ].size;printf("newsize %d\n", newClusterSize);
+        int* newClusterPos = (int*)malloc(newClusterSize * sizeof(int));
+        if (newClusterPos == NULL) {
+            fprintf(stderr, "cluster_fusion, newClusterPos : Allocation de memoire echouee.\n");
+            exit(EXIT_FAILURE);
+        }
+
+        // Copie des positions des deux clusters dans le nouveau cluster
+        for (int k = 0; k < tree->cluster[minI].size; k++) {
+            newClusterPos[k] = tree->cluster[minI].pos[k];
+        }
+        for (int k = 0; k < tree->cluster[minJ].size; k++) {
+            newClusterPos[tree->cluster[minI].size + k] = tree->cluster[minJ].pos[k];
+		}
+        // Mise à jour du nouveau cluster
+        tree->cluster[minI].size = newClusterSize;
+        tree->cluster[minI].pos = (int*)realloc(tree->cluster[minI].pos, newClusterSize * sizeof(int));
+		for (int k = 0; k < tree->cluster[minI].size; k++) {
+            tree->cluster[minI].pos[k] = newClusterPos[k];
+        }
+
+        // Marquer le cluster minJ comme déjà fusionné
+        tree->cluster[minJ].notmerged = false;
+
+		Ncluster--;
+    }
+}
+
+void matrice_ultra(matrice_t* matrice_dist, matrice_t* matrice_ultra){
+	tree_t tree;
+	tree.N = matrice_dist->N;
+	tree.cluster = (cluster_t*)malloc( tree.N * sizeof(cluster_t));
+	if (tree.cluster == NULL) {
+		fprintf(stderr, "matrice_ultra, tree.cluster : Allocation de memoire echouee.\n");
+		exit(EXIT_FAILURE);
+	}
+	for(int i = 0; i < tree.N; i++){
+		tree.cluster[i].pos = (int*)malloc(sizeof(int));
+		if (tree.cluster[i].pos == NULL) {
+			fprintf(stderr, "matrice_ultra, tree.cluster[%d].pos : Allocation de memoire echouee.\n", i);
+			exit(EXIT_FAILURE);
+		}
+		tree.cluster[i].size = 1;
+		tree.cluster[i].pos[0] = i;
+		tree.cluster[i].notmerged = true;
+	}
+
+	cluster_fusion(&tree, matrice_dist, matrice_ultra);
+
+	for(int i = 0; i < tree.N; i++){free(tree.cluster[i].pos);}
+	free(tree.cluster);
+}
+
 
 /********************************************************************************/
 /*                                                                              */
@@ -676,7 +804,7 @@ void tri(double** matrice, int N){
 void print_allmeta(spinners_t* spin, double L, char* add) {
 	
 	if(spin->Ngrid != 1){
-		printf("read_spinner : invalide Ngrid %d", spin->Ngrid );
+		printf("print_allmeta : invalide Ngrid %d", spin->Ngrid );
 	}
 
 	char path[STRING_MAX];

@@ -22,10 +22,17 @@ def plot_from_txt_and_save_png(path):
     plt.close()
 
 # Chemin vers le dossier contenant les fichiers texte
-dirc = "C:/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/allmeta/"
+dirc = "C:/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/recuit_of_T0/"
 
-file_path = dirc + 'ppm_3x3_L0.025000_distHI_allmeta'
-plot_from_txt_and_save_png(file_path)
     
- 
+for i in range(10,100):
+    file_path = dirc + 'ppm_10x10_L0.025_T00.' + str(i) + '0000_recuit1000_L0.025000_distHI_allmeta'
+    plot_from_txt_and_save_png(file_path)
+
+for i in range(1,10):
+    file_path = dirc + 'ppm_10x10_L0.025_T00.0' + str(i) + '0000_recuit1000_L0.025000_distHI_allmeta'
+    plot_from_txt_and_save_png(file_path)
+
+file_path = dirc + 'ppm_10x10_L0.025_T01.000000_recuit1000_L0.025000_distHI_allmeta'
+plot_from_txt_and_save_png(file_path)
             
