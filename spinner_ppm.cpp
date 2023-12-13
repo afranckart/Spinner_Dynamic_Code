@@ -647,8 +647,9 @@ void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *H
 	const int N = spin->nx * spin->ny;
 	for(int i = 0; i < spin->Ngrid ; i ++){
 		for(int j = i; j < spin->Ngrid ; j ++){
-			matrice.line[i].col[j] = dist(spin, i, j, N, H, HB);
-			matrice.line[j].col[i] = matrice.line[i].col[j];
+			double d = dist(spin, i, j, N, H, HB);
+			matrice.line[i].col[j] = d;
+			matrice.line[j].col[i] = d;
 		}
 	}
 	tri(&matrice);
@@ -693,23 +694,29 @@ void tri(matrice_t* matrice){
         }
     }
 	
+	double* change = (double*)malloc(matrice->N * sizeof(double));
+	if (change == NULL) {
+		fprintf(stderr, "tri, change : Allocation de memoire echouee.\n");
+		exit(EXIT_FAILURE);
+	}
+
 	for(int i = 0; i < matrice->N; i++){
-		double* change = (double*)malloc(matrice->N * sizeof(double));
-		if (change == NULL) {
-			fprintf(stderr, "tri, change : Allocation de memoire echouee.\n");
-			exit(EXIT_FAILURE);
-		}
-		
 		memcpy(change, matrice->line[i].col, matrice->N * sizeof(double));
 		for(int j = 0; j < matrice->N; j++){matrice->line[i].col[j] = change[matrice->line[j].pos];}
-		free(change);
 	}
+	free(change);
 }
 
 
 void cluster_fusion(tree_t* tree, matrice_t* matrice_dist, matrice_t* matrice_ultra) {
 	
 	int Ncluster = tree->N;
+	int* newClusterPos = (int*)malloc(tree->N * sizeof(int));
+    if (newClusterPos == NULL) {
+        fprintf(stderr, "cluster_fusion, newClusterPos : Allocation de memoire echouee.\n");
+        exit(EXIT_FAILURE);
+    }
+
     // Boucle pour fusionner les clusters jusqu'à ce qu'il ne reste qu'un seul cluster
     while (Ncluster > 1) {
         // Recherche des clusters les plus proches non encore fusionnés
@@ -719,7 +726,7 @@ void cluster_fusion(tree_t* tree, matrice_t* matrice_dist, matrice_t* matrice_ul
 
         for (int i = 0; i < tree->N; i++) {
             if (tree->cluster[i].notmerged) {
-                for (int j = 0; j < tree->N; j++) {
+                for (int j = i + 1; j < tree->N; j++) {
                     if (tree->cluster[j].notmerged) {
                         similarity = 0.;
 						for(int k = 0; k < tree->cluster[i].size;  k++){
@@ -747,31 +754,24 @@ void cluster_fusion(tree_t* tree, matrice_t* matrice_dist, matrice_t* matrice_ul
 
         // Fusion des clusters minI et minJ
         int newClusterSize = tree->cluster[minI].size + tree->cluster[minJ].size;//printf("newsize %d\n", newClusterSize);
-        int* newClusterPos = (int*)malloc(newClusterSize * sizeof(int));
-        if (newClusterPos == NULL) {
-            fprintf(stderr, "cluster_fusion, newClusterPos : Allocation de memoire echouee.\n");
-            exit(EXIT_FAILURE);
-        }
 
-        // Copie des positions des deux clusters dans le nouveau cluster
-        for (int k = 0; k < tree->cluster[minI].size; k++) {
-            newClusterPos[k] = tree->cluster[minI].pos[k];
-        }
-        for (int k = 0; k < tree->cluster[minJ].size; k++) {
-            newClusterPos[tree->cluster[minI].size + k] = tree->cluster[minJ].pos[k];
-		}
+        memcpy(newClusterPos, tree->cluster[minI].pos, tree->cluster[minI].size * sizeof(int));
+        memcpy(newClusterPos + tree->cluster[minI].size, tree->cluster[minJ].pos, tree->cluster[minJ].size * sizeof(int));
+
         // Mise à jour du nouveau cluster
         tree->cluster[minI].size = newClusterSize;
         tree->cluster[minI].pos = (int*)realloc(tree->cluster[minI].pos, newClusterSize * sizeof(int));
-		for (int k = 0; k < tree->cluster[minI].size; k++) {
-            tree->cluster[minI].pos[k] = newClusterPos[k];
+		if (tree->cluster[minI].pos == NULL) {
+            fprintf(stderr, "cluster_fusion, tree->cluster[%d].pos : Allocation de memoire echouee.\n", minI);
+            exit(EXIT_FAILURE);
         }
+		memcpy(tree->cluster[minI].pos, newClusterPos, newClusterSize * sizeof(int));
 
-        // Marquer le cluster minJ comme déjà fusionné
         tree->cluster[minJ].notmerged = false;
 
 		Ncluster--;
     }
+	free(newClusterPos);
 }
 
 void matrice_ultra(matrice_t* matrice_dist, matrice_t* matrice_ultra){
