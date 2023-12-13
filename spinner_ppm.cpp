@@ -538,14 +538,20 @@ void plot_E_mean(spinners_t* spin, double* H, double* HB, double track){
         fprintf(stderr, "print_E, E : allocation de mémoire échouée.\n");
         exit(EXIT_FAILURE);
     }
-	for(int i = 0; i < spin->Ngrid; i++){ E[i] = E_total(spin, H, HB, N * i); }
+	double Emin = DBL_MAX;
+	double Emax = -DBL_MAX;
+	for(int i = 0; i < spin->Ngrid; i++){ 
+		E[i] = E_total(spin, H, HB, N * i);
+		if(E[i] > Emax) Emax = E[i];
+		if(E[i] < Emin) Emin = E[i];
+	}
 	double moyenne = 0.0;
     for (int i = 0; i < spin->Ngrid; i++) { moyenne += E[i]; }
     moyenne /= spin->Ngrid;
     double ecart_type = 0.0;
     for (int i = 0; i < spin->Ngrid; i++) { ecart_type += pow(E[i] - moyenne, 2);}
     ecart_type = sqrt(ecart_type / spin->Ngrid);
-	printf("%f %f %f\n", track , moyenne, ecart_type);
+	printf("%f %f %f %f %f\n", track , moyenne, ecart_type, Emin, Emax);
 	free(E);
 }
 
@@ -653,7 +659,7 @@ void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *H
 	fclose(fichier_ultra);
 	for(int i = 0; i < matrice.N; i++){free(matrice.line[i].col);}
 	free(matrice.line);
-	for(int i = 0; i < matrice.N; i++){free(ultra.line[i].col);}
+	for(int i = 0; i < ultra.N; i++){free(ultra.line[i].col);}
 	free(ultra.line);
 }
 
@@ -741,7 +747,7 @@ void cluster_fusion(tree_t* tree, matrice_t* matrice_dist, matrice_t* matrice_ul
         }
 
         // Fusion des clusters minI et minJ
-        int newClusterSize = tree->cluster[minI].size + tree->cluster[minJ].size;printf("newsize %d\n", newClusterSize);
+        int newClusterSize = tree->cluster[minI].size + tree->cluster[minJ].size;//printf("newsize %d\n", newClusterSize);
         int* newClusterPos = (int*)malloc(newClusterSize * sizeof(int));
         if (newClusterPos == NULL) {
             fprintf(stderr, "cluster_fusion, newClusterPos : Allocation de memoire echouee.\n");
@@ -787,6 +793,8 @@ void matrice_ultra(matrice_t* matrice_dist, matrice_t* matrice_ultra){
 		tree.cluster[i].pos[0] = i;
 		tree.cluster[i].notmerged = true;
 	}
+
+	for(int i = 0; i < matrice_ultra->N; i++){matrice_ultra->line[i].col[i] = 0;}
 
 	cluster_fusion(&tree, matrice_dist, matrice_ultra);
 

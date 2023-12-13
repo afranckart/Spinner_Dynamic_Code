@@ -3,6 +3,7 @@
 #include "spinner_ppm.h"
 #include <ctime>
 #include <cmath>
+#include <stdlib.h>
 #include <string>
 #include <cstring>
 #include "spinner_CUDA.cuh"
@@ -12,10 +13,10 @@ int main() {
 
     clock_t debut = clock();
 
-    
-    //#pragma omp parallel for num_threads(5)
-    for(int j = 200; j < 201; j++){
-        double i = j/1000.;
+    #pragma omp parallel for num_threads(6)
+    for(int j = 1; j < 101; j++){
+        double i = j/100.;
+        printf("%f\n", i);
 
         int num_threads = omp_get_num_threads();
 
@@ -34,16 +35,16 @@ int main() {
 
         srand((unsigned int)time(NULL));
 
-        std::string direc = "/mnt/c/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/recuit_of_t0/run4/";
+        std::string direc = "/mnt/c/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/recuit_of_t0/run3/";
         
         std::string add = direc + "ppm_"+ std::to_string(nx) +"x"+ std::to_string(ny) + "_L0.025_T0"+std::to_string(i) + "_recuit1000.txt";
         //std::string add = direc + "ppm_4x4_L0.025000_allmeta.txt";
         char* addspin = new char[add.length() + 1];
         std::strcpy(addspin, add.c_str());
 
-        std::string direc2 = "/mnt/c/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/";
+        std::string direc2 = "/mnt/c/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/recuit_of_t0/run3/distEG/";
 
-        std::string add0 = direc2 + "ppm_"+ std::to_string(nx) +"x"+ std::to_string(ny);
+        std::string add0 = direc2 + "ppm_"+ std::to_string(nx) +"x"+ std::to_string(ny) +  "_T0"+std::to_string(i);
         char* spin0 = new char[add0.length() + 1];
         std::strcpy(spin0, add0.c_str());
         
