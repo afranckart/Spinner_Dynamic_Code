@@ -569,6 +569,7 @@ double dist_H(spinners_t* spin, int i, int j, int N, double* H, double * HB);
  */
 double dist_HI(spinners_t* spin, int i, int j, int N, double* H, double * HB);
 
+double fromUM(matrice_t* matrice_dist, matrice_t* matrice_ultra);
 
 /**
  * @brief print the matrice of distance bteween two grid of all grid of a spinner_t. The matrice is "trier" and the ultrametric distance
@@ -607,11 +608,13 @@ void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *H
 double distline(double* A, double* B, int N);
 
 /**
- * @brief "trie" the distance matrice, by hamming distance
+ * @brief "trie" the distance matrice, by hamming distance on the ultrametric distance
  *
  * @param  matrice [INOUT]  the matrice_t of distance between two states
+ * 
+ * @param  ultra [INOUT]  the matrice_t of ultrametric distance between two states
  */
-void tri(matrice_t* matrice);
+void tri(matrice_t* matrice, matrice_t* ultra);
 
 /**
  * @brief performe the ultrametric distance with an average link clustering

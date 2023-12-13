@@ -602,6 +602,16 @@ double dist_HI(spinners_t* spin, int i, int j, int N, double* H, double * HB){
 	return sqrt(d) / (double)N;
 }
 
+double fromUM(matrice_t* matrice_dist, matrice_t* matrice_ultra){
+	double d = 0;
+	for(int i = 0; i < matrice_ultra->N ; i++){
+		for(int j = i + 1; j < matrice_ultra->N ; j++){
+			d += pow(matrice_dist->line[i].col[j] - matrice_ultra->line[i].col[j], 2);
+		}
+	}
+	return sqrt(d / (double)matrice_ultra->N);
+}
+
 void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *HB, double (*dist)(spinners_t* spin, int i, int j, int N, double* H, double * HB)){
 	char path[STRING_MAX];
 	strcpy(path, add);
@@ -652,8 +662,9 @@ void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *H
 			matrice.line[j].col[i] = d;
 		}
 	}
-	tri(&matrice);
+	
 	matrice_ultra(&matrice, &ultra);
+	tri(&matrice, &ultra);
 	print_matrice(&matrice, fichier);
 	print_matrice(&ultra, fichier_ultra);
 	fclose(fichier);
@@ -676,20 +687,29 @@ double distline(double* A, double* B, int N){
 	return d;
 }
 
-void tri(matrice_t* matrice){
+void tri(matrice_t* matrice, matrice_t* ultra){
 	
-	for (int i = 0; i < matrice->N - 1; i++) {
-        double dmin = distline(matrice->line[i].col, matrice->line[i + 1].col, matrice->N);
-        for (int j = i + 2; j < matrice->N; j++) {
-			double d = distline(matrice->line[i].col, matrice->line[j].col, matrice->N);
+	for (int i = 0; i < ultra->N - 1; i++) {
+        double dmin = distline(ultra->line[i].col, ultra->line[i + 1].col, ultra->N);
+        for (int j = i + 2; j < ultra->N; j++) {
+			double d = distline(ultra->line[i].col, ultra->line[j].col, ultra->N);
             if (d < dmin) {
 				double* change = matrice->line[j].col;
 				matrice->line[j].col = matrice->line[i + 1].col;
 				matrice->line[i + 1].col = change;
+
+				change = ultra->line[j].col;
+				ultra->line[j].col = ultra->line[i + 1].col;
+				ultra->line[i + 1].col = change; 
+
 				dmin = d;
 				int temp = matrice->line[i + 1].pos;
 				matrice->line[i + 1].pos = matrice->line[j].pos;
 				matrice->line[j].pos = temp;
+
+				temp = ultra->line[i + 1].pos;
+				ultra->line[i + 1].pos = ultra->line[j].pos;
+				ultra->line[j].pos = temp;
             }
         }
     }
@@ -717,9 +737,8 @@ void cluster_fusion(tree_t* tree, matrice_t* matrice_dist, matrice_t* matrice_ul
         exit(EXIT_FAILURE);
     }
 
-    // Boucle pour fusionner les clusters jusqu'à ce qu'il ne reste qu'un seul cluster
     while (Ncluster > 1) {
-        // Recherche des clusters les plus proches non encore fusionnés
+        
         int minI = -1, minJ = -1;
         double minSimilarite = DBL_MAX;
 		double similarity = 0.;
@@ -752,13 +771,11 @@ void cluster_fusion(tree_t* tree, matrice_t* matrice_dist, matrice_t* matrice_ul
         	}
         }
 
-        // Fusion des clusters minI et minJ
         int newClusterSize = tree->cluster[minI].size + tree->cluster[minJ].size;//printf("newsize %d\n", newClusterSize);
 
         memcpy(newClusterPos, tree->cluster[minI].pos, tree->cluster[minI].size * sizeof(int));
         memcpy(newClusterPos + tree->cluster[minI].size, tree->cluster[minJ].pos, tree->cluster[minJ].size * sizeof(int));
 
-        // Mise à jour du nouveau cluster
         tree->cluster[minI].size = newClusterSize;
         tree->cluster[minI].pos = (int*)realloc(tree->cluster[minI].pos, newClusterSize * sizeof(int));
 		if (tree->cluster[minI].pos == NULL) {
