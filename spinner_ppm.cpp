@@ -719,12 +719,11 @@ void cluster_fusion(tree_t* tree, matrice_t* matrice_dist, matrice_t* matrice_ul
 
         for (int i = 0; i < tree->N; i++) {
             if (tree->cluster[i].notmerged) {
-                for (int j = i + 1; j < tree->N; j++) {
+                for (int j = 0; j < tree->N; j++) {
                     if (tree->cluster[j].notmerged) {
                         similarity = 0.;
 						for(int k = 0; k < tree->cluster[i].size;  k++){
 							for(int l = 0; l < tree->cluster[j].size;  l++){
-								
 								similarity += matrice_dist->line[tree->cluster[i].pos[k]].col[tree->cluster[j].pos[l]];
 							}
 						}
@@ -741,8 +740,8 @@ void cluster_fusion(tree_t* tree, matrice_t* matrice_dist, matrice_t* matrice_ul
 
 		for (int k = 0; k < tree->cluster[minI].size; k++) {
             for (int l = 0; l < tree->cluster[minJ].size; l++) {
-				matrice_ultra->line[tree->cluster[minI].pos[k]].col[tree->cluster[minJ].pos[l]] = similarity;
-				matrice_ultra->line[tree->cluster[minJ].pos[l]].col[tree->cluster[minI].pos[k]] = similarity;
+				matrice_ultra->line[tree->cluster[minI].pos[k]].col[tree->cluster[minJ].pos[l]] = minSimilarite;
+				matrice_ultra->line[tree->cluster[minJ].pos[l]].col[tree->cluster[minI].pos[k]] = minSimilarite;
         	}
         }
 

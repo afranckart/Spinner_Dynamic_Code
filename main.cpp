@@ -35,20 +35,19 @@ int main() {
 
         srand((unsigned int)time(NULL));
 
-        std::string direc = "/mnt/c/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/recuit_of_t0/run3/";
+        std::string direc = "/mnt/c/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/recuit_of_T0/run3/";
         
         std::string add = direc + "ppm_"+ std::to_string(nx) +"x"+ std::to_string(ny) + "_L0.025_T0"+std::to_string(i) + "_recuit1000.txt";
         //std::string add = direc + "ppm_4x4_L0.025000_allmeta.txt";
         char* addspin = new char[add.length() + 1];
         std::strcpy(addspin, add.c_str());
 
-        std::string direc2 = "/mnt/c/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/recuit_of_t0/run3/distEG/";
+        std::string direc2 = "/mnt/c/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/recuit_of_T0/run3/distEG/";
 
         std::string add0 = direc2 + "ppm_"+ std::to_string(nx) +"x"+ std::to_string(ny) +  "_T0"+std::to_string(i);
         char* spin0 = new char[add0.length() + 1];
         std::strcpy(spin0, add0.c_str());
         
-
         read_spinnersall(&spin, addspin, nx, ny, L);
         //plot_E_mean(&spin, H, HB, i);
         //print_E_Histo(&spin, spin0, H, HB);
