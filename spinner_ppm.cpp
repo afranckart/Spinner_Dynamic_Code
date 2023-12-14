@@ -292,7 +292,7 @@ FILE* openfile_in(char* add) {
 	FILE* fichier = fopen( add, "r");
 
 	if (fichier == NULL) {
-		fprintf(stderr, "openfile_in : Impossible d'ouvrir le fichier %s pour l'�criture.\n", add);
+		fprintf(stderr, "openfile_in : Impossible d'ouvrir le fichier %s pour lecture.\n", add);
 		exit(EXIT_FAILURE);
 	}
 	return fichier;
@@ -667,6 +667,8 @@ void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *H
 	tri(&matrice, &ultra);
 	print_matrice(&matrice, fichier);
 	print_matrice(&ultra, fichier_ultra);
+	double deltaUM =fromUM(&matrice, &ultra);
+	printf("%dx%d %s \t%f\n", spin->nx, spin->ny, distchar, deltaUM);
 	fclose(fichier);
 	fclose(fichier_ultra);
 	for(int i = 0; i < matrice.N; i++){free(matrice.line[i].col);}
@@ -693,38 +695,59 @@ void tri(matrice_t* matrice, matrice_t* ultra){
         double dmin = distline(ultra->line[i].col, ultra->line[i + 1].col, ultra->N);
         for (int j = i + 2; j < ultra->N; j++) {
 			double d = distline(ultra->line[i].col, ultra->line[j].col, ultra->N);
-            if (d < dmin) {
-				double* change = matrice->line[j].col;
-				matrice->line[j].col = matrice->line[i + 1].col;
-				matrice->line[i + 1].col = change;
-
-				change = ultra->line[j].col;
+            if (d < dmin ) {
+				double* change = ultra->line[j].col;
 				ultra->line[j].col = ultra->line[i + 1].col;
 				ultra->line[i + 1].col = change; 
 
 				dmin = d;
-				int temp = matrice->line[i + 1].pos;
-				matrice->line[i + 1].pos = matrice->line[j].pos;
-				matrice->line[j].pos = temp;
 
-				temp = ultra->line[i + 1].pos;
+				int temp = ultra->line[i + 1].pos;
 				ultra->line[i + 1].pos = ultra->line[j].pos;
 				ultra->line[j].pos = temp;
             }
         }
     }
+
+	for (int i = 0; i < ultra->N - 1; i++) {
+        double dmin = ultra->line[i].col[0];
+        for (int j = i + 1; j < ultra->N; j++) {
+			double d = ultra->line[j].col[0];
+            if (d < dmin ) {
+
+				double* change = ultra->line[j].col;
+				ultra->line[j].col = ultra->line[i].col;
+				ultra->line[i].col = change; 
+
+				dmin = d;
+
+				int temp = ultra->line[i].pos;
+				ultra->line[i].pos = ultra->line[j].pos;
+				ultra->line[j].pos = temp;
+            }
+        }
+    }
 	
-	double* change = (double*)malloc(matrice->N * sizeof(double));
-	if (change == NULL) {
+	double* change1 = (double*)malloc(matrice->N * sizeof(double));
+	double* change2 = (double*)malloc(matrice->N * sizeof(double));
+	double** change3 = (double**)malloc(matrice->N * sizeof(double*));
+	if (change1 == NULL || change2 == NULL || change3 == NULL) {
 		fprintf(stderr, "tri, change : Allocation de memoire echouee.\n");
 		exit(EXIT_FAILURE);
 	}
 
-	for(int i = 0; i < matrice->N; i++){
-		memcpy(change, matrice->line[i].col, matrice->N * sizeof(double));
-		for(int j = 0; j < matrice->N; j++){matrice->line[i].col[j] = change[matrice->line[j].pos];}
+	for(int i = 0; i < matrice->N; i++){change3[i] = matrice->line[i].col;}
+	for(int i = 0; i < matrice->N; i++){matrice->line[i].col = change3[ultra->line[i].pos];}
+	free(change3);
+
+	for(int i = 0; i < ultra->N; i++){
+		memcpy(change1, matrice->line[i].col, matrice->N * sizeof(double));
+		memcpy(change2, ultra->line[i].col, ultra->N * sizeof(double));
+		for(int j = 0; j < ultra->N; j++){ultra->line[i].col[j] = change2[ultra->line[j].pos];}
+		for(int j = 0; j < matrice->N; j++){matrice->line[i].col[j] = change1[ultra->line[j].pos];}
 	}
-	free(change);
+	free(change1);
+	free(change2);
 }
 
 
@@ -1016,7 +1039,7 @@ void print_Emin( spinners_t* spin,  char* add, int Niters)
 
 	for (int i = 0; i < Niters; i++) {
 		for (int j = 0; j < N; j++) { spin->angles[j] = rand() % 6; }
-		recuit(spin, H, HB, 10, 0.0001, 0.95, 5 * N, 0, &seed);
+		recuit(spin, H, HB, 1, 0.001, 0.95, 100 * N, 0, &seed);
 		double E = E_total(spin, H, HB, 0);
 		if (E < Emin && metastable(spin, H, HB, 0)) { 
 			Emin = E;
@@ -1024,7 +1047,7 @@ void print_Emin( spinners_t* spin,  char* add, int Niters)
 		}
 	}
 	for (int l = 0; l < N; l++) { spin->angles[l] = spinmin[l]; }
-	printf("EF = %f metastable : %d\n", Emin, metastable(spin, H, HB, 0));
+	printf("nx %d ny %d EF = %f metastable : %d\n",spin->nx, spin->ny, Emin, metastable(spin, H, HB, 0));
 	print_spinners(spin, fichier);
 	free(H);
 	free(HB);
