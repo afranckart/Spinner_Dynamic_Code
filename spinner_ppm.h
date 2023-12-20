@@ -392,6 +392,8 @@ void plotall(spinners_t* spin);
  */
 void recuit(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int offset, unsigned int* seed);
 
+void plot_MinMax(char* add, double L, int nx, int ny);
+
 /**
  * @brief performe n!/nmin!
  *
@@ -585,8 +587,10 @@ double fromUM(matrice_t* matrice_dist, matrice_t* matrice_ultra);
  * @param  HB [IN]  interaction tensor dipole B-field
  * 
  * @param dist [in] a fonction that performe the distance betxeen two state
+ * 
+ * @return the distance betwenn metric and ultrmetric distance
  */
-void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *HB, double (*dist)(spinners_t* spin, int i, int j, int N, double* H, double * HB));
+double print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *HB, double (*dist)(spinners_t* spin, int i, int j, int N, double* H, double * HB));
 
 /********************************************************************************/
 /*                                                                              */

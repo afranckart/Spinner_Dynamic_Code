@@ -393,6 +393,43 @@ void recuit(spinners_t* spin, double* H, double* HB, double T0, double TF, doubl
 	}
 }
 
+void plot_MinMax(char* add, double L, int nx, int ny){
+	spinners_t spin;
+	spinners_init(&spin,  L, nx, ny, 1);
+	spinners_t spinmin;
+	spinners_init(&spinmin,  L, nx, ny, 1);
+	spinners_t spinmax;
+	spinners_init(&spinmax,  L, nx, ny, 1);
+	double* H = H_init(L);
+	double* HB = H_B_init(0, 0);
+	const int N = nx * ny;
+
+	read_spinnersall(&spin, add, nx, ny, L);
+
+	double Emax = -DBL_MAX;
+	double Emin = DBL_MAX;
+
+	for(int i = 0; i < spin.Ngrid; i++){
+		double E = E_total(&spin, H, HB, N * i);
+		if(E < Emin){
+			Emin = E;
+			for(int j = 0; j < N; j++){spinmin.angles[j] = spin.angles[N * i + j];}
+		}
+		if(E > Emax){
+			Emax = E;
+			for(int j = 0; j < N; j++){spinmax.angles[j] = spin.angles[N * i + j];}
+		}
+	}
+	printf("Emin %f\n\n", Emin);
+	for(int j = 0; j < N; j++){printf("%d\t", spinmin.angles[j]);}
+	printf("\n\nEmax %f\n\n", Emax);
+	for(int j = 0; j < N; j++){printf("%d\t", spinmax.angles[j]);}
+	printf("\n\n");
+	Finalisation_simu(&spin, H, HB);
+	free(spinmax.angles);
+	free(spinmin.angles);
+}
+
 unsigned long factorielle(int n, int nmin) {
 	if (n == 0 || n == 1) {return 1; }
 	if (nmin == n) { return nmin; }
@@ -612,7 +649,7 @@ double fromUM(matrice_t* matrice_dist, matrice_t* matrice_ultra){
 	return sqrt(d / (double)matrice_ultra->N);
 }
 
-void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *HB, double (*dist)(spinners_t* spin, int i, int j, int N, double* H, double * HB)){
+double print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *HB, double (*dist)(spinners_t* spin, int i, int j, int N, double* H, double * HB)){
 	char path[STRING_MAX];
 	strcpy(path, add);
 	strcat(path, "_L"); 
@@ -668,13 +705,13 @@ void print_dist(spinners_t* spin, char* add, char* distchar, double*H, double *H
 	print_matrice(&matrice, fichier);
 	print_matrice(&ultra, fichier_ultra);
 	double deltaUM =fromUM(&matrice, &ultra);
-	printf("%dx%d %s \t%f\n", spin->nx, spin->ny, distchar, deltaUM);
 	fclose(fichier);
 	fclose(fichier_ultra);
 	for(int i = 0; i < matrice.N; i++){free(matrice.line[i].col);}
 	free(matrice.line);
 	for(int i = 0; i < ultra.N; i++){free(ultra.line[i].col);}
 	free(ultra.line);
+	return deltaUM;
 }
 
 /********************************************************************************/
