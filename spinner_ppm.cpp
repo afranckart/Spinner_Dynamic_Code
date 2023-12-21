@@ -1072,7 +1072,7 @@ void print_Emin( spinners_t* spin,  char* add, int Niters)
 	double Emin = 1000000 * N;
 	int* spinmin = (int*)malloc(N * sizeof(int));
 
-	unsigned int seed = (unsigned int)time(NULL);
+	unsigned int seed = (unsigned int)time(NULL) + omp_get_thread_num();
 
 	for (int i = 0; i < Niters; i++) {
 		for (int j = 0; j < N; j++) { spin->angles[j] = rand() % 6; }
@@ -1082,7 +1082,8 @@ void print_Emin( spinners_t* spin,  char* add, int Niters)
 			Emin = E;
 			for (int l = 0; l < N; l++) { spinmin[l] = spin->angles[l]; }
 		}
-	}
+
+	
 	for (int l = 0; l < N; l++) { spin->angles[l] = spinmin[l]; }
 	printf("nx %d ny %d EF = %f metastable : %d\n",spin->nx, spin->ny, Emin, metastable(spin, H, HB, 0));
 	print_spinners(spin, fichier);
