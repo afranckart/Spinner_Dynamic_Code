@@ -7,7 +7,7 @@ NVCC := nvcc
 CXX := clang++
 
 # Options de compilation
-CXXFLAGS := -std=c++20 -Wall -fopenmp=libomp -O3
+CXXFLAGS := -std=c++20 -Wall -fopenmp=libomp -O3 -funroll-loops
 CUDAFLAGS := -arch=sm_52
 
 # Options de l'édition des liens

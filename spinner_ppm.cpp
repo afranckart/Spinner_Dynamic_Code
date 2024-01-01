@@ -126,7 +126,7 @@ void spinners_init(spinners_t *spin, double L, int nx, int ny, int Ngrid){
 	spin->ny = ny;
 	spin->Ngrid = Ngrid;
 
-	spin->angles = (int*)malloc(nx * ny * sizeof(int));
+	spin->angles = (int*)malloc(nx * ny * Ngrid * sizeof(int));
 
 	if (spin->angles == NULL) {
 		fprintf(stderr, "spinner_init : Allocation de m�moire �chou�e.\n");
@@ -614,13 +614,29 @@ double dist_EG(spinners_t* spin, int i, int j, int N, double* H, double * HB){
 
 double dist_EL(spinners_t* spin, int i, int j, int N, double* H, double * HB){
 	double d = 0.;
-	for(int k = 0; k < N; k++){ d += pow( E_local(spin, k, H, HB, i * N) - E_local(spin, k, H, HB, j * N) , 2);}
+	for(int k = 0; k < N; k++){
+    double E = E_local(spin, k, H, HB, i * N) - E_local(spin, k, H, HB, j * N);
+    d += E *E ;
+  }
 	return sqrt(d) / (double)N;
 }
 
 double dist_H(spinners_t* spin, int i, int j, int N, double* H, double * HB){
 	double d = 0.;
-	for(int k = 0; k < N; k++){ d += pow( spin->angles[i * N + k] - spin->angles[j * N + k] , 2);}
+	for(int k = 0; k < N; k++){
+   int delta = (spin->angles[i * N + k] - spin->angles[j * N + k]) * (spin->angles[i * N + k] - spin->angles[j * N + k]);
+    switch( delta ){
+      case 25:
+        d += 1.;
+        break;
+      case 16 :
+        d += 4.;
+        break;
+      default:
+        d += delta;
+        break;
+    }
+  }
 	return sqrt(d) / (double)N;
 }
 
@@ -630,8 +646,22 @@ double dist_HI(spinners_t* spin, int i, int j, int N, double* H, double * HB){
 		double dd = 0;
 		int* voisins = neighbour(spin, k);
 		for(int l = 0; l < SIZE_NEIGHBOUR; l++){
-			if(voisins[l] != -1){dd += pow( spin->angles[i * N + k] - spin->angles[i * N + voisins[l]]
-			 - spin->angles[j * N + k] + spin->angles[j * N + voisins[l]] , 2);}
+			if(voisins[l] != -1){
+        
+       int delta = spin->angles[i * N + k] - spin->angles[i * N + voisins[l]] - spin->angles[j * N + k] + spin->angles[j * N + voisins[l]];
+       delta *= delta;
+       switch( delta ){
+          case 25:
+          dd += 1.;
+          break;
+        case 16 :
+          dd += 4.;
+          break;
+        default:
+          dd += delta;
+          break;
+        }
+      }
 		}
 		d += dd;
 		free(voisins);
@@ -643,7 +673,7 @@ double fromUM(matrice_t* matrice_dist, matrice_t* matrice_ultra){
 	double d = 0;
 	for(int i = 0; i < matrice_ultra->N ; i++){
 		for(int j = i + 1; j < matrice_ultra->N ; j++){
-			d += pow(matrice_dist->line[i].col[j] - matrice_ultra->line[i].col[j], 2);
+			d += (matrice_dist->line[i].col[j] - matrice_ultra->line[i].col[j]) * (matrice_dist->line[i].col[j] - matrice_ultra->line[i].col[j]);
 		}
 	}
 	return sqrt(d / (double)matrice_ultra->N);
@@ -1083,7 +1113,7 @@ void print_Emin( spinners_t* spin,  char* add, int Niters)
 			for (int l = 0; l < N; l++) { spinmin[l] = spin->angles[l]; }
 		}
 
-	
+	}
 	for (int l = 0; l < N; l++) { spin->angles[l] = spinmin[l]; }
 	printf("nx %d ny %d EF = %f metastable : %d\n",spin->nx, spin->ny, Emin, metastable(spin, H, HB, 0));
 	print_spinners(spin, fichier);
@@ -1093,8 +1123,7 @@ void print_Emin( spinners_t* spin,  char* add, int Niters)
 	fclose(fichier);
 }
 
-void print_Emax( spinners_t* spin,  char* add, int Niters)
-{
+void print_Emax( spinners_t* spin,  char* add, int Niters){
 	if(spin->Ngrid != 1){
 		printf("read_spinner : invalide Ngrid %d", spin->Ngrid );
 	}
@@ -1126,8 +1155,7 @@ void print_Emax( spinners_t* spin,  char* add, int Niters)
 	fclose(fichier);
 }
 
-void print_neighbours_state_rand(spinners_t* spin, char* add, int Niters, int distance)
-{
+void print_neighbours_state_rand(spinners_t* spin, char* add, int Niters, int distance){
 	if(spin->Ngrid != 1){
 		printf("read_spinner : invalide Ngrid %d", spin->Ngrid );
 	}
@@ -1183,8 +1211,7 @@ void print_neighbours_state_rand(spinners_t* spin, char* add, int Niters, int di
 
 
 /*modifier car des �tats sont compter plusieur fois*/
-void print_neighbours_state_all_for(spinners_t* spin, int distancemax, int distance, int* index, int* track, FILE* fichier)
-{
+void print_neighbours_state_all_for(spinners_t* spin, int distancemax, int distance, int* index, int* track, FILE* fichier){
 	double* H = H_init(spin->L);
 	double* HB = H_B_init(0, 0);
 	int N = spin->nx * spin->ny;
@@ -1286,6 +1313,103 @@ void recuitN(spinners_t* spin, double* H, double* HB, double T0, double TF, doub
 	}
 
 	remove_equale_allmeta(spin, H, HB);
+}
+
+
+
+void recuit_GPU(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int Nsimu, int p){
+
+	int N = spin->nx * spin->ny;
+	int* angles0 = (int*)malloc(N * sizeof(int));
+	if (angles0  == NULL) {
+        fprintf(stderr, "recuitN, angles0 failled to malloc\n");
+        exit(EXIT_FAILURE);
+	}
+
+	memcpy(angles0, spin->angles, N * sizeof(int));
+	spin->angles = (int*)realloc(spin->angles, Nsimu * N * sizeof(int));
+	if (spin->angles == NULL) {
+    	fprintf(stderr, "recuitN, échec de l'allocation mémoire.\n");
+    	exit(EXIT_FAILURE);	
+	}
+
+	spin->Ngrid = Nsimu;
+	for(int i = 0; i < spin->Ngrid; i++){
+		for(int j = 0; j < N; j++){
+			spin->angles[i * N + j] = angles0[j];
+		}
+	}
+	free(angles0);
+
+	#pragma omp parallel num_threads(p)
+	{	
+		unsigned int seed = (unsigned int)time(NULL) + omp_get_thread_num();
+		#pragma omp for
+		for(int i = 0; i < spin->Ngrid ; i++){
+			for (double T = T0; T >= TF; T *= lambda) {
+				for (int j = 0; j < Niter; j++) {
+					int index = rand_r(&seed) % N;
+					double E0 = E_local(spin, index, H, HB, i * N);
+					int signe = rand_r(&seed) % 2 == 0 ? 1 : -1;
+					spin->angles[index + i * N] += signe;
+					double EF = E_local(spin, index, H, HB, i * N); 
+					if (E0 < EF) { 
+						double temp = (double)rand_r(&seed) / (double)RAND_MAX;
+						if (temp > exp((E0 - EF) / T)) { spin->angles[index + i * N] -= signe; }
+					}
+				spin->angles[index + i * N] = (spin->angles[index + i * N] + 6) % 6;
+				}
+			}
+		}
+	}
+
+	remove_equale_allmeta(spin, H, HB);
+}
+
+
+void print_Emin( double L,  int nx, int ny, char* add, int Niters, int p)
+{
+	spinners_t spin;
+	spinners_init(&spin, L, nx, ny, Niters);
+	spinners_t spinmin;
+	spinners_init(&spinmin, L, nx, ny, 1);
+
+	double* H = H_init(spin.L);
+	double* HB = H_B_init(0, 0);
+	int N = spin.nx * spin.ny;
+	double Emin = DBL_MAX;
+
+	#pragma omp parallel num_threads(p)
+	{	
+		unsigned int seed = (unsigned int)(time(NULL) + omp_get_thread_num());
+		#pragma omp for
+		for(int i = 0; i < N ; i++){
+			for(int j = 0; j < N ; j++){spin.angles[i * N + j] = rand_r(&seed) % 6;}
+		}
+
+		#pragma omp for
+		for(int i = 0; i < spin.Ngrid ; i++){
+			recuit(&spin, H, HB, 1, 0.001, 0.95, 100 * N, N * i, &seed);
+		}
+	}
+	
+	for (int i = 0; i < spin.Ngrid; i++) {
+		double E = E_total(&spin, H, HB, i * N);
+		if (E < Emin && metastable(&spin, H, HB, i * N)) { 
+			Emin = E;
+			for (int l = 0; l < N; l++) { spinmin.angles[l] = spin.angles[l + i * N]; }
+		}
+
+	}
+	
+	printf("nx %d ny %d EF = %f metastable : %d\n",spin.nx, spin.ny, Emin, metastable(&spinmin, H, HB, 0));
+	if(metastable(&spinmin, H, HB, 0)){
+		FILE* fichier = openfile_out(add);
+		print_spinners(&spinmin, fichier);
+		fclose(fichier);
+	}
+	Finalisation_simu(&spin, H, HB);
+	free(spinmin.angles);
 }
 
 /********************************************************************************/

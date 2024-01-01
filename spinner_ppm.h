@@ -705,7 +705,6 @@ void print_allmetaofL(spinners_t* spin, char* add, double L0, double LF, double 
  */
 void print_allmetaofBX(spinners_t* spin, double L, char* add, double B0, double BF, double Bpas);
 
-void print_Emin(spinners_t* spin, char* add, int Niters);
 
 void print_Emax(spinners_t* spin, char* add, int Niters);
 
@@ -738,6 +737,10 @@ void print_neighbours_state_all(spinners_t* spin, char* add, int distance);
  * @param p [IN] number of threats for OpenMP
  */
 void recuitN(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int Nsimu, int p);
+
+void recuit_GPU(spinners_t* spin, double* H, double* HB, double T0, double TF, double lambda, int Niter, int Nsimu, int p);
+
+void print_Emin( double L,  int nx, int ny, char* add, int Niters, int p);
 
 /********************************************************************************/
 /*                                                                              */
