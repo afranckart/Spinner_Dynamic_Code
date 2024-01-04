@@ -181,10 +181,10 @@ def print_spinner_arrow(n, direc, add): #pour un ppm
     plt.close()
 
 
-direc = 'C:\\Users\\axelf\\OneDrive - Universite de Liege\\Mémoire\\simulation\\'
-for i in range(2,11):
-    add = 'ppm_' + str(i) + 'x' + str(i) + '_L0.025_Ehight' 
-    #add = 'ppm_5x5_L0.025000_distance5_all' 
+direc = 'C:\\Users\\axelf\\OneDrive - Universite de Liege\\Mémoire\\simulation\\UM_demo\\UM_demo_run3\\Elow\\'
+for i in range(2,30):
+    add = 'ppm_' + str(i) + 'x' + str(i) + '_L0.130000_Elow' 
+    #add = 'ppm_5x5_L0.130000_distance5_all' 
 
     n = 2
 

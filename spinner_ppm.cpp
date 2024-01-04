@@ -1089,6 +1089,160 @@ void print_allmetaofBX(spinners_t* spin, double L, char* add, double B0, double 
 	fclose(fichier);
 }
 
+void print_all4x4(char* add, double L){
+	FILE* fichier = openfile_out(add);
+	double* H = H_init(L);
+	double* HB = H_B_init( 0 , 0);
+	int n = 0;
+	
+  #pragma omp parallel
+  {
+  	spinners spin;
+	spinners_init(&spin, L, 4, 4, 1);
+	#pragma omp for collapse(6)
+	for(int i0 = 0 ; i0 < 6; i0++){
+		for(int i1 = 0 ; i1 < 6; i1++){
+			for(int i2 = 0 ; i2 < 6; i2++){
+				for(int i3 = 0 ; i3 < 6; i3++){
+					for(int i4 = 0 ; i4 < 6; i4++){
+						for(int i5 = 0 ; i5 < 6; i5++){
+							spin.angles[0] = i0;
+							spin.angles[1] = i1;
+							spin.angles[2] = i2;
+							spin.angles[3] = i3;
+							spin.angles[4] = i4;
+							spin.angles[5] = i5;
+							for(int i6 = 0 ; i6 < 6; i6++){
+								spin.angles[6] = i6;
+								for(int i7 = 0 ; i7 < 6; i7++){
+									spin.angles[7] = i7;
+									for(int i8 = 0 ; i8 < 6; i8++){
+										spin.angles[8] = i8;
+										for(int i9 = 0 ; i9 < 6; i9++){
+											spin.angles[9] = i9;
+											for(int i10 = 0 ; i10 < 6; i10++){
+												spin.angles[10] = i10;
+												for(int i11 = 0 ; i11 < 6; i11++){
+													spin.angles[11] = i11;
+													for(int i12 = 0 ; i12 < 6; i12++){
+														spin.angles[12] = i12;
+														for(int i13 = 0 ; i13 < 6; i13++){
+															spin.angles[13] = i13;
+															for(int i14 = 0 ; i14 < 6; i14++){
+																spin.angles[14] = i14;
+																for(int i15 = 0 ; i15 < 6; i15++){
+																	spin.angles[15] = i15;
+																	if(metastable(&spin, H, HB, 0)) {
+																		print_spinners(&spin, fichier);
+																		n++;
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+  free(spin.angles);
+  }
+	printf("%f\t%d\n",L, n);
+	free(H);
+	free(HB);
+	fclose(fichier);
+}
+
+void print_all3x3(char* add, double L){
+	FILE* fichier = openfile_out(add);
+	double* H = H_init(L);
+	double* HB = H_B_init( 0 , 0);
+	int n = 0;
+	
+  #pragma omp parallel
+  {
+  	spinners spin;
+	spinners_init(&spin, L, 3, 3, 1);
+	#pragma omp for collapse(6)
+	for(int i0 = 0 ; i0 < 6; i0++){
+		for(int i1 = 0 ; i1 < 6; i1++){
+			for(int i2 = 0 ; i2 < 6; i2++){
+				for(int i3 = 0 ; i3 < 6; i3++){
+					for(int i4 = 0 ; i4 < 6; i4++){
+						for(int i5 = 0 ; i5 < 6; i5++){
+							spin.angles[0] = i0;
+							spin.angles[1] = i1;
+							spin.angles[2] = i2;
+							spin.angles[3] = i3;
+							spin.angles[4] = i4;
+							spin.angles[5] = i5;
+							for(int i6 = 0 ; i6 < 6; i6++){
+								spin.angles[6] = i6;
+								for(int i7 = 0 ; i7 < 6; i7++){
+									spin.angles[7] = i7;
+									for(int i8 = 0 ; i8 < 6; i8++){
+										spin.angles[8] = i8;
+										if(metastable(&spin, H, HB, 0)) {
+											print_spinners(&spin, fichier);
+											n++;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+  free(spin.angles);
+  }
+	printf("%f\t%d\n",L, n);
+	free(H);
+	free(HB);
+	fclose(fichier);
+}
+
+void print_all2x2(char* add, double L){
+	FILE* fichier = openfile_out(add);
+	double* H = H_init(L);
+	double* HB = H_B_init( 0 , 0);
+	int n = 0;
+	
+ 
+  	spinners spin;
+	spinners_init(&spin, L, 4, 4, 1);
+	for(int i0 = 0 ; i0 < 6; i0++){
+		spin.angles[0] = i0;
+		for(int i1 = 0 ; i1 < 6; i1++){
+			spin.angles[1] = i1;
+			for(int i2 = 0 ; i2 < 6; i2++){
+				spin.angles[2] = i2;
+				for(int i3 = 0 ; i3 < 6; i3++){
+					spin.angles[3] = i3;
+					if(metastable(&spin, H, HB, 0)) {
+						print_spinners(&spin, fichier);
+						n++;
+					}
+				}
+			}
+		}
+	}
+	free(spin.angles);
+  
+	printf("%f\t%d\n",L, n);
+	free(H);
+	free(HB);
+	fclose(fichier);
+}
+
 void print_Emin( spinners_t* spin,  char* add, int Niters)
 {
 	if(spin->Ngrid != 1){
@@ -1099,7 +1253,7 @@ void print_Emin( spinners_t* spin,  char* add, int Niters)
 	double* H = H_init(spin->L);
 	double* HB = H_B_init(0, 0);
 	int N = spin->nx * spin->ny;
-	double Emin = 1000000 * N;
+	double Emin = DBL_MAX;
 	int* spinmin = (int*)malloc(N * sizeof(int));
 
 	unsigned int seed = (unsigned int)time(NULL) + omp_get_thread_num();
@@ -1132,7 +1286,7 @@ void print_Emax( spinners_t* spin,  char* add, int Niters){
 	double* H = H_init(spin->L);
 	double* HB = H_B_init(0, 0);
 	int N = spin->nx * spin->ny;
-	double Emax = -1000000. * N;
+	double Emax = -DBL_MAX;
 	int* spinmin = (int*)malloc(N * sizeof(int));
 
 	unsigned int seed = (unsigned int)time(NULL);

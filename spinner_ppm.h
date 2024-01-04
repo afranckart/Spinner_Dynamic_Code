@@ -705,6 +705,11 @@ void print_allmetaofL(spinners_t* spin, char* add, double L0, double LF, double 
  */
 void print_allmetaofBX(spinners_t* spin, double L, char* add, double B0, double BF, double Bpas);
 
+void print_all4x4(char* add, double L);
+
+void print_all3x3(char* add, double L);
+
+void print_all2x2(char* add, double L);
 
 void print_Emax(spinners_t* spin, char* add, int Niters);
 
