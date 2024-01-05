@@ -1176,7 +1176,7 @@ void print_all3x3(char* add, double L){
 			for(int i2 = 0 ; i2 < 6; i2++){
 				for(int i3 = 0 ; i3 < 6; i3++){
 					for(int i4 = 0 ; i4 < 6; i4++){
-						for(int i5 = 0 ; i5 < 6; i5++){
+						for(int i5 = 0 ; i5 < 6; i5++){S
 							spin.angles[0] = i0;
 							spin.angles[1] = i1;
 							spin.angles[2] = i2;
@@ -1218,7 +1218,7 @@ void print_all2x2(char* add, double L){
 	
  
   	spinners spin;
-	spinners_init(&spin, L, 4, 4, 1);
+	spinners_init(&spin, L, 2, 2, 1);
 	for(int i0 = 0 ; i0 < 6; i0++){
 		spin.angles[0] = i0;
 		for(int i1 = 0 ; i1 < 6; i1++){
