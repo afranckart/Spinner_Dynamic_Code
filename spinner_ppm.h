@@ -647,64 +647,6 @@ void matrice_ultra(matrice_t* matrice_dist,  matrice_t* matrice_ultra);
 /*                                                                              */
 /********************************************************************************/
 
-/**
- * @brief print all mestastable state of a size of grid with 0 fields
- *
- * @param  spin [IN]  spin grid
- * 
- * @param  L [IN]  lenght between tow spinner
- * 
- * @param  add [IN]  pathfile
- */
-void print_allmeta(spinners_t* spin, double L, char *add);
-
-
-/**
- * @brief print all mestastable state for a B-field
- *
- * @param  spin [IN]  spin grid
- *
- * @param  L [IN]  lenght between tow spinner
- *
- * @param  add [IN]  pathfile
- *
- * @param  bx [IN] composante x of B-field
- *
- * @param  by [IN] composante y of B-field
- */
-void print_allmeta_B(spinners_t* spin, double L, char* add, double bx, double by);
-
-/**
- * @brief print numbert of mestastable state of a size of grid of a range of L
- *
- * @param  spin [IN]  spin grid
- *
- * @param  add [IN]  pathfile
- * 
- * @param  L0 [IN]  minimal value of L intervale
- * 
- * @param  LF [IN]  maximale value of L intervale
- * 
- * @param  Lpas [IN]  pas of discretisation of L intervale
- */
-void print_allmetaofL(spinners_t* spin, char* add, double L0, double LF, double Lpas);
-
-
-/**
- * @brief print numbert of mestastable state of a size of grid of a range of B
- *
- * @param  spin [IN]  spin grid
- *
- * @param  add [IN]  pathfile
- * 
- * @param  B0 [IN] B minimal
- *
- * @param  BF [IN] m maximale
- * 
- * @param  Bpas [IN] pas of range
- */
-void print_allmetaofBX(spinners_t* spin, double L, char* add, double B0, double BF, double Bpas);
-
 void print_all4x4(char* add, double L);
 
 void print_all3x3(char* add, double L);
@@ -718,7 +660,6 @@ void print_neighbours_state_rand(spinners_t* spin, char* add, int Niters, int di
 void print_neighbours_state_all_for(spinners_t* spin, int distancemax, int distance, int* index, int *track, FILE* fichier);
 
 void print_neighbours_state_all(spinners_t* spin, char* add, int distance);
-
 
 /**
  * @brief compute Nsimu annealing of a initial sate
