@@ -60,6 +60,23 @@ double Uspinner(int theta, int thetav, double L, int nv) {
 	return U / HREF;
 }
 
+double Uspinner_ppp(int theta, int thetav, double L, int nv) {
+
+	double U = 0.;
+	for (int i = 0; i < 6; i += 2) {
+		for (int j = 0; j < 6; j += 2) {
+
+			double angv = PI3 * (thetav + j); 
+			double ang = PI3 * (theta + i); 
+
+			double Udd = Udipole(cos(ang), sin(ang), cos(angv), sin(angv),
+				R * cos(ang), R * sin(ang), L * cos(PI3 * nv) + R * cos(angv), L * sin(PI3 * nv) + R * sin(angv));
+			U += Udd; 
+		}
+	}
+	return U / HREF;
+}
+
 
 double*  H_init(double L) {
 
@@ -73,6 +90,23 @@ double*  H_init(double L) {
 	for (int i = 0; i < 6; i++) {
 		for (int v = 0; v < 6; v++) {
 			SETELEMENT(H, i, v, Uspinner(i, v, L, 0));
+		}
+	}
+	return H;
+}
+
+double*  H_ppp_init(double L) {
+
+	double* H = (double*)malloc(SIZE_H * sizeof(double));
+
+	if (H == NULL) {
+		fprintf(stderr, "H_init : Allocation de m�moire �chou�e.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	for (int i = 0; i < 6; i++) {
+		for (int v = 0; v < 6; v++) {
+			SETELEMENT(H, i, v, Uspinner_ppp(i, v, L, 0));
 		}
 	}
 	return H;
@@ -600,6 +634,15 @@ void print_E_Histo(spinners_t* spin, char* add, double* H, double* HB){
 	for(int i = 0; i < spin->Ngrid; i++){ histogram[E_total(spin, H, HB, N * i)]++; }
 	for (const auto& entry : histogram){ fprintf(fichier, "%f %d\n", entry.first, entry.second); }
 	fclose(fichier);
+}
+
+void to_ppp(spinners_t* spin){
+	const int N = spin->nx * spin->ny;
+	for(int i = 0; i < spin->Ngrid; i++){
+		for(int j = 0; j < N; j++){
+			spin->angles[i * N + j] = ((spin->angles[i * N + j] + 6 ) % 6) % 2 ;
+		}
+	}
 }
 
 /********************************************************************************/

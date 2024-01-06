@@ -117,6 +117,8 @@ double UB(double mx, double my, double bx, double by);
  */
 double Uspinner(int theta, int thetav, double L, int nv);
 
+double Uspinner_ppp(int theta, int thetav, double L, int nv);
+
 
 /**
  * @brief compute a ppm spinner B-field interaction
@@ -139,6 +141,8 @@ double UBspinner(int theta, double bx, double by);
  * @return interaction tensor of the right neghitbourg
  */
 double* H_init(double L);
+
+double*  H_ppp_init(double L);
 
 /**
  * @brief compute the interaction tensor  by dipole B-field interaction
@@ -479,6 +483,8 @@ void plot_E_mean(spinners_t* spin, double* H, double* HB, double track);
  * @param  HB [IN]  interaction tensor dipole B-field
  */
 void print_E_Histo(spinners_t* spin, char* add, double* H, double* HB);
+
+void to_ppp(spinners_t* spin);
 
 /********************************************************************************/
 /*                                                                              */

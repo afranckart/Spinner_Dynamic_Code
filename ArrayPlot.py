@@ -23,11 +23,31 @@ def plot_from_txt_and_save_png(path, name):
 
 # Chemin vers le dossier contenant les fichiers texte
     
-dirc = "C:/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/UM_demo/UM_demo_run2/UM_demo_T00.900000/"
+dirc = "C:/Users/axelf/OneDrive - Universite de Liege/Mémoire/simulation/UM_demo/UM_demo_run3/UM_demo_run3_plot/"
 
 a = 'EG'
+
+file_path = dirc + 'ppm_' + str(20) +'x'+ str(20) + '_T00.010000_TF0.0000001_L0.130000_dist'+ a +'_allmeta'
+plot_from_txt_and_save_png(file_path, a)
+file_path = dirc + 'ppm_' + str(20) +'x'+ str(20) + '_T00.010000_TF0.0000001_L0.130000_dist' + a +'_allmeta_ultra'
+plot_from_txt_and_save_png(file_path, a + ' ultra')
+a = 'EL'
+file_path = dirc + 'ppm_' + str(20) +'x'+ str(20) + '_T00.010000_TF0.0000001_L0.130000_dist' + a +'_allmeta'
+plot_from_txt_and_save_png(file_path, a)
+file_path = dirc + 'ppm_' + str(20) +'x'+ str(20) + '_T00.010000_TF0.0000001_L0.130000_dist' + a +'_allmeta_ultra'
+plot_from_txt_and_save_png(file_path, a + ' ultra')
+a = 'H'
+file_path = dirc + 'ppm_' + str(20) +'x'+ str(20) + '_T00.010000_TF0.0000001_L0.130000_dist' + a +'_allmeta'
+plot_from_txt_and_save_png(file_path, a)
+file_path = dirc + 'ppm_' + str(20) +'x'+ str(20) + '_T00.010000_TF0.0000001_L0.130000_dist' + a +'_allmeta_ultra'
+plot_from_txt_and_save_png(file_path, a + ' ultra')
+a = 'HI'
+file_path = dirc + 'ppm_' + str(20) +'x'+ str(20) +'_T00.010000_TF0.0000001_L0.130000_dist'+ a +'_allmeta'
+plot_from_txt_and_save_png(file_path, a)
+file_path = dirc + 'ppm_' + str(20) +'x'+ str(20) + '_T00.010000_TF0.0000001_L0.130000_dist'+ a +'_allmeta_ultra'
+plot_from_txt_and_save_png(file_path, a + ' ultra')
     
-for i in range(2,30):
+for i in range(20,21):
     file_path = dirc + 'ppm_' + str(i) +'x'+ str(i) + '_T00.900000_L0.025000_dist'+ a +'_allmeta'
     plot_from_txt_and_save_png(file_path, a)
     file_path = dirc + 'ppm_' + str(i) +'x'+ str(i) + '_T00.900000_L0.025000_dist'+ a +'_allmeta_ultra'
