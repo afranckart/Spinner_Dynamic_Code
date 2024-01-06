@@ -618,7 +618,7 @@ double dist_EL(spinners_t* spin, int i, int j, int N, double* H, double * HB){
     double E = E_local(spin, k, H, HB, i * N) - E_local(spin, k, H, HB, j * N);
     d += E *E ;
   }
-	return sqrt(d) / (double)N;
+	return sqrt(d / (double)N);
 }
 
 double dist_H(spinners_t* spin, int i, int j, int N, double* H, double * HB){
@@ -637,7 +637,7 @@ double dist_H(spinners_t* spin, int i, int j, int N, double* H, double * HB){
         break;
     }
   }
-	return sqrt(d) / (double)N;
+	return sqrt(d / (double)N) ;
 }
 
 double dist_HI(spinners_t* spin, int i, int j, int N, double* H, double * HB){
@@ -666,7 +666,7 @@ double dist_HI(spinners_t* spin, int i, int j, int N, double* H, double * HB){
 		d += dd;
 		free(voisins);
 	}
-	return sqrt(d) / (double)N;
+	return sqrt(d / (double)N) ;
 }
 
 double fromUM(matrice_t* matrice_dist, matrice_t* matrice_ultra){
@@ -1002,7 +1002,7 @@ void print_all3x3(char* add, double L){
 			for(int i2 = 0 ; i2 < 6; i2++){
 				for(int i3 = 0 ; i3 < 6; i3++){
 					for(int i4 = 0 ; i4 < 6; i4++){
-						for(int i5 = 0 ; i5 < 6; i5++){S
+						for(int i5 = 0 ; i5 < 6; i5++){
 							spin.angles[0] = i0;
 							spin.angles[1] = i1;
 							spin.angles[2] = i2;
